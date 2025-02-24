@@ -2,6 +2,7 @@
 //
 
 #include "tgaimage.h"
+#include "OBJParser.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -26,6 +27,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
 int main()
 {
 	TGAImage image(100, 100, TGAImage::RGB);
+    OBJParser objfiles("MitaDream.obj");
 	image.write_tga_file("output.tga");
 	return 0;
 }

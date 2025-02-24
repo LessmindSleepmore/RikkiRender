@@ -28,6 +28,12 @@
     <Filter Include="源文件\ModelFiles">
       <UniqueIdentifier>{cb7e6a4f-45fa-4efa-9e26-0681c24fcda0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Math">
+      <UniqueIdentifier>{80c0c3b8-aa91-4ffc-a754-a9c0e110bc1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Math">
+      <UniqueIdentifier>{5c846159-29a0-4387-ad70-6e6193450bcb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RikkiRender.cpp">
@@ -46,6 +52,9 @@
     </ClInclude>
     <ClInclude Include="OBJParser.h">
       <Filter>头文件\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometricTypes.h">
+      <Filter>头文件\Math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
