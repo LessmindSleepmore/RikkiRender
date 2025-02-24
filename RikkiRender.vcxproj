@@ -132,6 +132,7 @@
     <ClCompile Include="tgaimage.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GeometricTypes.h" />
     <ClInclude Include="OBJParser.h" />
     <ClInclude Include="tgaimage.h" />
   </ItemGroup>
