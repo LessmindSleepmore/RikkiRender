@@ -1,6 +1,4 @@
 #include "GraphicDrawing.h"
-#include <algorithm>
-#include "CustomAlgorithm.h"
 
 void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
     bool isSwap = false;
@@ -30,13 +28,13 @@ void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color)
     for (int i = 0; i <= (v0.y - v2.y); ++i) {
         int y_axis = v0.y - i;
         if (i < (v0.y - v1.y)) {
-            int xleft = v0.x + (float)i / (float)(v0.y - v2.y) * (v2.x - v0.x);
-            int xright = v0.x + (float)i / (float)(v0.y - v1.y) * (v1.x - v0.x);
+            int xleft = v0.x + (float)i / (float)(v0.y - v2.y + 0.001) * (v2.x - v0.x);
+            int xright = v0.x + (float)i / (float)(v0.y - v1.y + 0.001) * (v1.x - v0.x);
             line(xleft, y_axis, xright, y_axis, image, color);
         }
         else {
-            int xleft = v0.x + (float)i / (float)(v0.y - v2.y) * (v2.x - v0.x);
-            int xright = v1.x + (float)(i - (v0.y - v1.y)) / (float)(v1.y - v2.y) * (v2.x - v1.x);
+            int xleft = v0.x + (float)i / (float)(v0.y - v2.y + 0.001) * (v2.x - v0.x);
+            int xright = v1.x + (float)(i - (v0.y - v1.y)) / (float)(v1.y - v2.y + 0.001) * (v2.x - v1.x);
             line(xleft, y_axis, xright, y_axis, image, color);
         }
     }
