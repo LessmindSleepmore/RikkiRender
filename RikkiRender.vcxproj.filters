@@ -51,6 +51,9 @@
     <ClCompile Include="GraphicDrawing.cpp">
       <Filter>源文件\Render</Filter>
     </ClCompile>
+    <ClCompile Include="CustomAlgorithm.cpp">
+      <Filter>源文件\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tgaimage.h">
