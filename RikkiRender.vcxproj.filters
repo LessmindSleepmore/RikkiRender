@@ -34,6 +34,9 @@
     <Filter Include="源文件\Math">
       <UniqueIdentifier>{5c846159-29a0-4387-ad70-6e6193450bcb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Render">
+      <UniqueIdentifier>{1cbe9be0-9c24-4b67-bd6b-2fab3d3a9f20}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RikkiRender.cpp">
@@ -45,6 +48,9 @@
     <ClCompile Include="OBJParser.cpp">
       <Filter>源文件\Data</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicDrawing.cpp">
+      <Filter>源文件\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tgaimage.h">
@@ -54,6 +60,12 @@
       <Filter>头文件\Data</Filter>
     </ClInclude>
     <ClInclude Include="GeometricTypes.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicDrawing.h">
+      <Filter>头文件\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomAlgorithm.h">
       <Filter>头文件\Math</Filter>
     </ClInclude>
   </ItemGroup>
