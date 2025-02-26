@@ -43,3 +43,39 @@ void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color)
     line(v1.x, v1.y, v2.x, v2.y, image, color);
     line(v2.x, v2.y, v0.x, v0.y, image, color);
 }
+
+/**
+* 
+* @param scpos: [float]The range of X and Y is [0, width] and [0, height] respectively.
+*/
+void rasterize(const std::vector<vec3f> scpos, TGAImage& image, TGAColor color, float* zbuffer, vec2i resolution)
+{
+    // find bounding box
+    float vertmax = std::numeric_limits<int>::min();
+    float vertmin = std::numeric_limits<int>::max();
+    float horimax = std::numeric_limits<int>::min();
+    float horimin = std::numeric_limits<int>::max();
+    for (int i = 0; i < 3; ++i) {
+        vertmax = scpos[i].x > vertmax ? scpos[i].x : vertmax;
+        vertmin = scpos[i].x < vertmin ? scpos[i].x : vertmin;
+        horimax = scpos[i].y > horimax ? scpos[i].y : horimax;
+        horimin = scpos[i].y < horimin ? scpos[i].y : horimin;
+    }
+    for (int _x = (int)round(vertmin); _x <= vertmax; ++_x) {
+        for (int _y = (int)round(horimin); _y <= horimax; ++_y) {
+            // 计算质心坐标 (1 - u - v, u, v)
+            vec3f _cv = cross(vec3f((scpos[1] - scpos[0]).x, (scpos[2] - scpos[0]).x, (scpos[0] - vec3f(_x, _y, 0)).x),
+                            vec3f((scpos[1] - scpos[0]).y, (scpos[2] - scpos[0]).y, (scpos[0] - vec3f(_x, _y, 0)).y));
+            _cv = _cv / _cv.z;
+
+            // 判断是否在三角形内部
+            if (_cv.x >= 0 && _cv.y >= 0 && _cv.x + _cv.y <= 1) {
+                float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
+                if (zbuffer[_x * resolution.y + _y] < clampz) {
+                    zbuffer[_x * resolution.y + _y] = clampz;
+                    image.set(_x, _y, color);
+                }
+            }
+        }
+    }
+}
