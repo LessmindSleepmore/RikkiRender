@@ -61,27 +61,15 @@ public:
 	Matrix(int dim);
 	Matrix(int dim, float defaultValue);
 	Matrix(float pitch, float yaw, float roll);
+	Matrix(vec3f target);
 	~Matrix();
 
 	void SetValue(int x, int y, float value);
+	float GetValue(int x, int y);
 
-	vec3f multipleVec3(vec3f v) {
-		std::vector<float> vec4 = { v.x, v.y, v.z, 1.0f };
-		std::vector<float> result4(4, 0);
+	vec3f MultipleVec3(vec3f v);
 
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				result4[i] += raw[i][j] * vec4[j];
-			}
-		}
-
-		vec3f result;
-		result.x = result4[0];
-		result.y = result4[1];
-		result.z = result4[2];
-
-		return result;
-	}
+	Matrix MultipleMat(Matrix m);
 
 	double d2r(float degrees);
 
