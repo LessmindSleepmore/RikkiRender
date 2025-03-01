@@ -13,35 +13,58 @@ const TGAColor red = TGAColor(255, 0, 0, 255);
 int main()
 {
 	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB);
-    OBJParser objfiles("Sample.obj");
+    OBJParser objfiles("mita.obj");
     float *zbuffer = new float[WIDHT * HEIGHT];
-    for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = std::numeric_limits<float>::min();
+    for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = std::numeric_limits<float>::max();
 
-    Matrix rmat(90., 0., 0.);
-    Matrix tmat(vec3f(1., 0., 0.));
+    // 模型变换矩阵
+    Matrix rmat(0., 0., 0.);
+    Matrix tmat(vec3f(0., 0, 0.));
     Matrix modelmat = tmat.MultipleMat(rmat);
+
+    // ViewMatrix
+    vec3f cameraPos(0., 5., 5.); // 相机位置
+    vec3f cameraRot(0., 180., 0.); // 旋转
+    Matrix viewmat(cameraPos, cameraRot);
+    Matrix camRotMat(cameraRot.x, cameraRot.y, cameraRot.z);
+
+    //设置一个相机发出的光源
+    vec3f lightdir(camRotMat.MultipleVec3(vec3f(0., 0., -1.0)));
+
+    // projectionMatrix
+    Matrix projectionMat = Matrix::MakeProjectionMatrix(10, 0.1, 45, 1);
 
     // 渲染模型测试用例
     for (int faceidx = 0; faceidx < objfiles.nFaces(); ++faceidx) {
         vec3i fi = objfiles.getFace(faceidx);
         std::vector<vec3f> screen_coords(3);
-        vec3f world_coords[3];
+        vec4f local_coords[3];
+        vec4f Mmat_coords[3];
+        vec4f MVmat_coords[3];
+        vec4f MVPmat_coords[3];
         for (int j = 0; j < 3; j++) {
-            world_coords[j] = objfiles.getVert(fi.raw[j]);
-            world_coords[j] = modelmat.MultipleVec3(world_coords[j]);
-            screen_coords[j] = vec3f((world_coords[j].x + 1.) * (WIDHT - 1) / 2., (world_coords[j].y + 1.) * (HEIGHT - 1) / 2., (world_coords[j].z + 1) / 2.);
-        }
-        vec3f n = normalize(cross(normalize(world_coords[1] - world_coords[0]), normalize(world_coords[2] - world_coords[0])));
-        float ndotl = dot(n, vec3f(0, 0, 1));
+            local_coords[j] = vec4f(objfiles.getVert(fi.raw[j]), 1.);
+            Mmat_coords[j] = modelmat.MultipleVec4(local_coords[j]);
+            MVmat_coords[j] = viewmat.MultipleVec4(Mmat_coords[j]);
+            MVPmat_coords[j] = projectionMat.MultipleVec4(MVmat_coords[j]);
 
-        if (ndotl > 0) {
+            // 齐次除法
+            MVPmat_coords[j].x /= MVPmat_coords[j].w;
+            MVPmat_coords[j].y /= MVPmat_coords[j].w;
+
+            screen_coords[j] = vec3f((MVPmat_coords[j].x + 1.) * (WIDHT - 1) / 2., (MVPmat_coords[j].y + 1.) * (HEIGHT - 1) / 2., -MVPmat_coords[j].z);
+        }
+        vec3f n = normalize(cross(normalize(Mmat_coords[1].xyz() - Mmat_coords[0].xyz()), normalize(Mmat_coords[2].xyz() - Mmat_coords[0].xyz())));
+        float ndotl = dot(n, lightdir);
+
+        if (ndotl >= 0) {
             //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
             rasterize(screen_coords, image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255), zbuffer, vec2i(WIDHT, HEIGHT));
         }
         if (faceidx % 100 == 0) std::cout << "Finished render faces number: " << faceidx << std::endl;
     }
 
-    // 渲染网格测试用例
+    //// 渲染网格测试用例
     //for (int faceidx = 0; faceidx < objfiles.nFaces(); ++faceidx) {
     //    vec3i fi = objfiles.getFace(faceidx);
     //    for (int i = 0; i < 3; ++i) {

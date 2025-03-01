@@ -12,12 +12,12 @@ OBJParser::OBJParser(const char* filename) {
 
     char line[MAX_LINE_LENGTH];
 	while (fgets(line, MAX_LINE_LENGTH, file)) {
-        if (line[0] == 'v') {
+        if (line[0] == 'v' && line[1] == ' ') {
             float x, y, z;
             sscanf_s(line, "v %f %f %f", &x, &y, &z);
 			verts.push_back(vec3f(x, y, z));
         }
-		else if (line[0] == 'f') {
+		else if (line[0] == 'f' && line[1] == ' ') {
 			int v1, v2, v3;
             sscanf_s(line, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &v1, &v2, &v3);
 			faces.push_back(vec3i(--v1, --v2, --v3));
