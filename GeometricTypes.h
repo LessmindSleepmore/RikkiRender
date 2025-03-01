@@ -1,5 +1,5 @@
 #pragma once
-
+#include <cmath>
 #include <vector>
 
 template <class t>
@@ -51,8 +51,25 @@ struct vec3
 	}
 };
 
+
 typedef vec3<int> vec3i;
 typedef vec3<float> vec3f;
+
+template<class t>
+struct vec4
+{
+	union
+	{
+		t raw[4];
+		struct { t x, y, z, w; };
+	};
+	vec4() :x(0), y(0), z(0), w(0) {}
+	vec4(vec3<t> vc3, t _w) :x(vc3.x), y(vc3.y), z(vc3.z), w(_w) {}
+	vec3<t> xyz() { return vec3<t>(x, y, z); }
+};
+
+typedef vec4<int> vec4i;
+typedef vec4<float> vec4f;
 
 class Matrix
 {
@@ -62,14 +79,21 @@ public:
 	Matrix(int dim, float defaultValue);
 	Matrix(float pitch, float yaw, float roll);
 	Matrix(vec3f target);
+	Matrix(vec3f camPos, vec3f camRot);
 	~Matrix();
 
 	void SetValue(int x, int y, float value);
 	float GetValue(int x, int y);
+	std::vector<std::vector<float>> GetRaw();
 
+	static Matrix MakeProjectionMatrix(int f, int n, float fov, float aspect);
+
+	vec4f MultipleVec4(vec4f v);
 	vec3f MultipleVec3(vec3f v);
 
 	Matrix MultipleMat(Matrix m);
+
+	Matrix inverse();
 
 	double d2r(float degrees);
 

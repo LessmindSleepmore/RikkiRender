@@ -80,12 +80,12 @@ void rasterize(std::vector<vec3f> scpos, TGAImage& image, TGAColor color, float*
             // 判断是否在三角形内部
             if (_cv.x >= 0 && _cv.y >= 0 && _cv.x + _cv.y <= 1) {
                 // 丢弃画面外的像素点
-                if (_x > resolution.x || _y > resolution.y) {
+                if (_x >= resolution.x || _y >= resolution.y || _x < 0 || _y < 0) {
                     continue;
                 }
                 // 插值z
                 float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
-                if (zbuffer[_x * resolution.y + _y] < clampz) {
+                if (zbuffer[_x * resolution.y + _y] > clampz) {
                     zbuffer[_x * resolution.y + _y] = clampz;
                     image.set(_x, _y, color);
                 }
