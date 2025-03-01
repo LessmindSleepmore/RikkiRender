@@ -17,7 +17,10 @@ int main()
     float *zbuffer = new float[WIDHT * HEIGHT];
     for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = std::numeric_limits<float>::min();
 
-    Matrix mat(90., 0., 0.);
+    Matrix rmat(90., 0., 0.);
+    Matrix tmat(vec3f(1., 0., 0.));
+    Matrix modelmat = tmat.MultipleMat(rmat);
+
     // 渲染模型测试用例
     for (int faceidx = 0; faceidx < objfiles.nFaces(); ++faceidx) {
         vec3i fi = objfiles.getFace(faceidx);
@@ -25,7 +28,7 @@ int main()
         vec3f world_coords[3];
         for (int j = 0; j < 3; j++) {
             world_coords[j] = objfiles.getVert(fi.raw[j]);
-            world_coords[j] = mat.multipleVec3(world_coords[j]);
+            world_coords[j] = modelmat.MultipleVec3(world_coords[j]);
             screen_coords[j] = vec3f((world_coords[j].x + 1.) * (WIDHT - 1) / 2., (world_coords[j].y + 1.) * (HEIGHT - 1) / 2., (world_coords[j].z + 1) / 2.);
         }
         vec3f n = normalize(cross(normalize(world_coords[1] - world_coords[0]), normalize(world_coords[2] - world_coords[0])));

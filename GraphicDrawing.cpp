@@ -48,8 +48,18 @@ void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color)
 * 
 * @param scpos: [float]The range of X and Y is [0, width] and [0, height] respectively.
 */
-void rasterize(const std::vector<vec3f> scpos, TGAImage& image, TGAColor color, float* zbuffer, vec2i resolution)
+void rasterize(std::vector<vec3f> scpos, TGAImage& image, TGAColor color, float* zbuffer, vec2i resolution)
 {
+    // 判断是否丢弃片段
+    bool isthrow = true;
+    for (int i = 0; i < 3; ++i) {
+        if (scpos[i].x < resolution.x && scpos[i].y < resolution.y) {
+            isthrow = false;
+            break;
+        }
+    }
+    if (isthrow) return;
+
     // find bounding box
     float vertmax = std::numeric_limits<int>::min();
     float vertmin = std::numeric_limits<int>::max();
@@ -67,9 +77,13 @@ void rasterize(const std::vector<vec3f> scpos, TGAImage& image, TGAColor color, 
             vec3f _cv = cross(vec3f((scpos[1] - scpos[0]).x, (scpos[2] - scpos[0]).x, (scpos[0] - vec3f(_x, _y, 0)).x),
                             vec3f((scpos[1] - scpos[0]).y, (scpos[2] - scpos[0]).y, (scpos[0] - vec3f(_x, _y, 0)).y));
             _cv = _cv / _cv.z;
-
             // 判断是否在三角形内部
             if (_cv.x >= 0 && _cv.y >= 0 && _cv.x + _cv.y <= 1) {
+                // 丢弃画面外的像素点
+                if (_x > resolution.x || _y > resolution.y) {
+                    continue;
+                }
+                // 插值z
                 float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
                 if (zbuffer[_x * resolution.y + _y] < clampz) {
                     zbuffer[_x * resolution.y + _y] = clampz;

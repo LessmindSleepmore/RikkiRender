@@ -49,6 +49,19 @@ Matrix::Matrix(float pitch, float yaw, float roll)
     raw[3][3] = 1;
 }
 
+Matrix::Matrix(vec3f target)
+{
+    raw = std::vector<std::vector<float>>(4, std::vector<float>(4, 0));
+    
+    raw[0][0] = 1;
+    raw[1][1] = 1;
+    raw[2][2] = 1;
+    raw[3][3] = 1;
+    raw[0][3] = target.x;
+    raw[1][3] = target.y;
+    raw[2][3] = target.z;
+}
+
 Matrix::~Matrix()
 {
 }
@@ -56,6 +69,45 @@ Matrix::~Matrix()
 void Matrix::SetValue(int x, int y, float value)
 {
 	raw[x][y] = value;
+}
+
+float Matrix::GetValue(int x, int y)
+{
+    return raw[x][y];
+}
+
+vec3f Matrix::MultipleVec3(vec3f v)
+{
+    std::vector<float> vec4 = { v.x, v.y, v.z, 1.0f };
+    std::vector<float> result4(4, 0);
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            result4[i] += raw[i][j] * vec4[j];
+        }
+    }
+
+    vec3f result;
+    result.x = result4[0];
+    result.y = result4[1];
+    result.z = result4[2];
+
+    return result;
+}
+
+Matrix Matrix::MultipleMat(Matrix m)
+{
+    Matrix res(4, 0);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            float sum = 0;
+            for (int k = 0; k < 4; ++k) {
+                sum += this->GetValue(i, k) * m.GetValue(k, j);
+            }
+            res.SetValue(i, j, sum);
+        }
+    }
+    return res;
 }
 
 double Matrix::d2r(float degrees)
