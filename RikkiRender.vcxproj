@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GeometricTypes.cpp" />
     <ClCompile Include="GraphicDrawing.cpp" />
     <ClCompile Include="OBJParser.cpp" />
     <ClCompile Include="RikkiRender.cpp" />
