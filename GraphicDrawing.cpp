@@ -48,7 +48,7 @@ void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color)
 * 
 * @param scpos: [float]The range of X and Y is [0, width] and [0, height] respectively.
 */
-void rasterize(std::vector<vec3f> scpos, TGAImage& image, TGAColor color, float* zbuffer, vec2i resolution)
+void rasterize(std::vector<vec3f> scpos, std::vector<vec3f> vertex_normals, TGAImage& image, TGAColor color, float* zbuffer, vec2i resolution, vec3f lightdir)
 {
     // ÅÐ¶ÏÊÇ·ñ¶ªÆúÆ¬¶Î
     bool isthrow = true;
@@ -85,9 +85,14 @@ void rasterize(std::vector<vec3f> scpos, TGAImage& image, TGAColor color, float*
                 }
                 // ²åÖµz
                 float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
+
+                // ²åÖµ·¨Ïß
+                vec3f clampnormal = vertex_normals[0] * (1 - _cv.x - _cv.y) + vertex_normals[1] * _cv.x + vertex_normals[2] * _cv.y;
+                float ndotl = dot(normalize(clampnormal), lightdir);
+
                 if (zbuffer[_x * resolution.y + _y] > clampz) {
                     zbuffer[_x * resolution.y + _y] = clampz;
-                    image.set(_x, _y, color);
+                    image.set(_x, _y, TGAColor(color.r * ndotl, color.g * ndotl, color.b * ndotl, color.a));
                 }
             }
         }

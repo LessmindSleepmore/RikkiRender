@@ -23,7 +23,7 @@ int main()
     Matrix modelmat = tmat.MultipleMat(rmat);
 
     // ViewMatrix
-    vec3f cameraPos(0., 5., 5.); // 相机位置
+    vec3f cameraPos(0., 3.5, 5.); // 相机位置
     vec3f cameraRot(0., 180., 0.); // 旋转
     Matrix viewmat(cameraPos, cameraRot);
     Matrix camRotMat(cameraRot.x, cameraRot.y, cameraRot.z);
@@ -36,14 +36,15 @@ int main()
 
     // 渲染模型测试用例
     for (int faceidx = 0; faceidx < objfiles.nFaces(); ++faceidx) {
-        vec3i fi = objfiles.getFace(faceidx);
+        std::vector<vec3i> fi = objfiles.getFace(faceidx);
         std::vector<vec3f> screen_coords(3);
+        std::vector<vec3f> vertex_normals;
         vec4f local_coords[3];
         vec4f Mmat_coords[3];
         vec4f MVmat_coords[3];
         vec4f MVPmat_coords[3];
         for (int j = 0; j < 3; j++) {
-            local_coords[j] = vec4f(objfiles.getVert(fi.raw[j]), 1.);
+            local_coords[j] = vec4f(objfiles.getVert(fi[j].x), 1.);
             Mmat_coords[j] = modelmat.MultipleVec4(local_coords[j]);
             MVmat_coords[j] = viewmat.MultipleVec4(Mmat_coords[j]);
             MVPmat_coords[j] = projectionMat.MultipleVec4(MVmat_coords[j]);
@@ -53,14 +54,16 @@ int main()
             MVPmat_coords[j].y /= MVPmat_coords[j].w;
 
             screen_coords[j] = vec3f((MVPmat_coords[j].x + 1.) * (WIDHT - 1) / 2., (MVPmat_coords[j].y + 1.) * (HEIGHT - 1) / 2., -MVPmat_coords[j].z);
-        }
-        vec3f n = normalize(cross(normalize(Mmat_coords[1].xyz() - Mmat_coords[0].xyz()), normalize(Mmat_coords[2].xyz() - Mmat_coords[0].xyz())));
-        float ndotl = dot(n, lightdir);
 
-        if (ndotl >= 0) {
-            //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
-            rasterize(screen_coords, image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255), zbuffer, vec2i(WIDHT, HEIGHT));
+            // 添加对应的顶点法线(这里没变换到世界坐标，因为没移动旋转模型所以没问题)
+            vertex_normals.push_back(objfiles.getNormals(fi[j].z));
         }
+        //vec3f n = normalize(cross(normalize(Mmat_coords[1].xyz() - Mmat_coords[0].xyz()), normalize(Mmat_coords[2].xyz() - Mmat_coords[0].xyz())));
+        //float ndotl = dot(n, lightdir);
+
+        //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
+        rasterize(screen_coords, vertex_normals, image, TGAColor(255, 255, 255, 255), zbuffer, vec2i(WIDHT, HEIGHT), lightdir);
+
         if (faceidx % 100 == 0) std::cout << "Finished render faces number: " << faceidx << std::endl;
     }
 

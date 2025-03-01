@@ -43,6 +43,7 @@ struct vec3
 	inline vec3<t> operator -(const vec3<t>& v) const { return vec3(x - v.x, y - v.y, z - v.z); }
 	inline vec3<t> operator ^(const vec3<t>& v) const { return vec3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x); }
 	inline float operator *(const vec3<t>& v) const { return x * v.x + y * v.y + z * v.z; }
+	inline vec3<t> operator *(const float f) const { return vec3(x * f, y * f, z * f); }
 	inline vec3<t> operator /(const float f) const { return vec3(x / f, y / f, z / f); }
 	inline vec2<t> xy() const { return vec2<t>(x, y); }
 	inline vec3<t> normalize() const {
