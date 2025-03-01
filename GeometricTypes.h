@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 template <class t>
 struct vec2
 {
@@ -51,3 +53,38 @@ struct vec3
 
 typedef vec3<int> vec3i;
 typedef vec3<float> vec3f;
+
+class Matrix
+{
+public:
+	Matrix();
+	Matrix(int dim);
+	Matrix(int dim, float defaultValue);
+	Matrix(float pitch, float yaw, float roll);
+	~Matrix();
+
+	void SetValue(int x, int y, float value);
+
+	vec3f multipleVec3(vec3f v) {
+		std::vector<float> vec4 = { v.x, v.y, v.z, 1.0f };
+		std::vector<float> result4(4, 0);
+
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				result4[i] += raw[i][j] * vec4[j];
+			}
+		}
+
+		vec3f result;
+		result.x = result4[0];
+		result.y = result4[1];
+		result.z = result4[2];
+
+		return result;
+	}
+
+	double d2r(float degrees);
+
+private:
+	std::vector<std::vector<float>> raw;
+};
