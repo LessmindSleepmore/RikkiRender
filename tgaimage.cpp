@@ -14,6 +14,25 @@ TGAImage::TGAImage(int w, int h, int bpp) : data(NULL), width(w), height(h), byt
 	memset(data, 0, nbytes);
 }
 
+TGAImage::TGAImage(int w, int h, int bpp, vec4c color) : data(NULL), width(w), height(h), bytespp(bpp)
+{
+	unsigned long nbytes = width * height * bytespp;
+	data = new unsigned char[nbytes];
+	
+	for (unsigned long i = 0; i < nbytes; i += bytespp) {
+		data[i] = color.b;
+		if (bytespp > 1) {
+			data[i + 1] = color.g;
+		}
+		if (bytespp > 2) {
+			data[i + 2] = color.r;
+		}
+		if (bytespp > 3) {
+			data[i + 3] = color.a;
+		}
+	}
+}
+
 TGAImage::TGAImage(const TGAImage& img) {
 	width = img.width;
 	height = img.height;

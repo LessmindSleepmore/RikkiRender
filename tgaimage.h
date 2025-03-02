@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include "GeometricTypes.h"
 
 #pragma pack(push,1)
 struct TGA_Header {
@@ -75,6 +76,7 @@ public:
 
 	TGAImage();
 	TGAImage(int w, int h, int bpp);
+	TGAImage(int w, int h, int bpp, vec4c color);
 	TGAImage(const TGAImage& img);
 	bool read_tga_file(const char* filename);
 	bool write_tga_file(const char* filename, bool rle = true);
