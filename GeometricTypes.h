@@ -13,6 +13,8 @@ struct vec2
 	vec2() :x(0), y(0){}
 	vec2(t ix, t iy) :x(ix), y(iy){}
 	inline float operator *(const vec2<t>& v) const { return x * v.x + y * v.y; }
+	inline vec2<t> operator *(const float f) const { return vec2<t>(x * f, y * f); }
+	inline vec2<t> operator +(const vec2<t>& v) const { return vec2<t>(x + v.x, y + v.y); }
 	inline vec2<t> operator -(const vec2<t>& v) const { return vec2<t>(x - v.x, y - v.y); }
 };
 
@@ -63,14 +65,17 @@ struct vec4
 	{
 		t raw[4];
 		struct { t x, y, z, w; };
+		struct { t r, g, b, a; };
 	};
 	vec4() :x(0), y(0), z(0), w(0) {}
 	vec4(vec3<t> vc3, t _w) :x(vc3.x), y(vc3.y), z(vc3.z), w(_w) {}
+	vec4(t _x, t _y, t _z, t _w) :x(_x), y(_y), z(_z), w(_w) {}
 	vec3<t> xyz() { return vec3<t>(x, y, z); }
 };
 
 typedef vec4<int> vec4i;
 typedef vec4<float> vec4f;
+typedef vec4<unsigned char> vec4c;
 
 class Matrix
 {

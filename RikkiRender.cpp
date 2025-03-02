@@ -7,13 +7,13 @@
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
-#define WIDHT 1080
-#define HEIGHT 1080
+#define WIDHT 2560
+#define HEIGHT 2560
 
 int main()
 {
-	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB);
-    OBJParser objfiles("mita.obj");
+	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB, vec4c(253, 245, 191, 255));
+    OBJParser objfiles("Resource/mita dream.obj");
     float *zbuffer = new float[WIDHT * HEIGHT];
     for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = std::numeric_limits<float>::max();
 
@@ -23,8 +23,8 @@ int main()
     Matrix modelmat = tmat.MultipleMat(rmat);
 
     // ViewMatrix
-    vec3f cameraPos(0., 3.5, 5.); // 相机位置
-    vec3f cameraRot(0., 180., 0.); // 旋转
+    vec3f cameraPos(0., 7, 5.); // 相机位置
+    vec3f cameraRot(30., 180., 0.); // 旋转
     Matrix viewmat(cameraPos, cameraRot);
     Matrix camRotMat(cameraRot.x, cameraRot.y, cameraRot.z);
 
@@ -35,36 +35,49 @@ int main()
     Matrix projectionMat = Matrix::MakeProjectionMatrix(10, 0.1, 45, 1);
 
     // 渲染模型测试用例
-    for (int faceidx = 0; faceidx < objfiles.nFaces(); ++faceidx) {
-        std::vector<vec3i> fi = objfiles.getFace(faceidx);
-        std::vector<vec3f> screen_coords(3);
-        std::vector<vec3f> vertex_normals;
-        vec4f local_coords[3];
-        vec4f Mmat_coords[3];
-        vec4f MVmat_coords[3];
-        vec4f MVPmat_coords[3];
-        for (int j = 0; j < 3; j++) {
-            local_coords[j] = vec4f(objfiles.getVert(fi[j].x), 1.);
-            Mmat_coords[j] = modelmat.MultipleVec4(local_coords[j]);
-            MVmat_coords[j] = viewmat.MultipleVec4(Mmat_coords[j]);
-            MVPmat_coords[j] = projectionMat.MultipleVec4(MVmat_coords[j]);
+    for (int blockidx = 0; blockidx < objfiles.nBlock(); ++blockidx) {
+        for (int faceidx = 0; faceidx < objfiles.nFaces(blockidx); ++faceidx) {
+            std::vector<vec3i> fi = objfiles.getFace(blockidx, faceidx);
+            std::vector<vec3f> screen_coords(3);
+            std::vector<vec3f> vertex_normals;
+            std::vector<vec2f> vertex_uv;
+            vec4f local_coords[3];
+            vec4f Mmat_coords[3];
+            vec4f MVmat_coords[3];
+            vec4f MVPmat_coords[3];
+            for (int j = 0; j < 3; j++) {
+                local_coords[j] = vec4f(objfiles.getVert(fi[j].x), 1.);
+                Mmat_coords[j] = modelmat.MultipleVec4(local_coords[j]);
+                MVmat_coords[j] = viewmat.MultipleVec4(Mmat_coords[j]);
+                MVPmat_coords[j] = projectionMat.MultipleVec4(MVmat_coords[j]);
 
-            // 齐次除法
-            MVPmat_coords[j].x /= MVPmat_coords[j].w;
-            MVPmat_coords[j].y /= MVPmat_coords[j].w;
+                // 齐次除法
+                MVPmat_coords[j].x /= MVPmat_coords[j].w;
+                MVPmat_coords[j].y /= MVPmat_coords[j].w;
 
-            screen_coords[j] = vec3f((MVPmat_coords[j].x + 1.) * (WIDHT - 1) / 2., (MVPmat_coords[j].y + 1.) * (HEIGHT - 1) / 2., -MVPmat_coords[j].z);
+                screen_coords[j] = vec3f((MVPmat_coords[j].x + 1.) * (WIDHT - 1) / 2., (MVPmat_coords[j].y + 1.) * (HEIGHT - 1) / 2., -MVPmat_coords[j].z);
 
-            // 添加对应的顶点法线(这里没变换到世界坐标，因为没移动旋转模型所以没问题)
-            vertex_normals.push_back(objfiles.getNormals(fi[j].z));
+                // 添加对应的顶点法线(这里没变换到世界坐标，因为没移动旋转模型所以没问题)
+                vertex_normals.push_back(objfiles.getNormals(fi[j].z));
+
+                // 添加对应的uv坐标
+                vertex_uv.push_back(objfiles.getUV(fi[j].y));
+            }
+            //vec3f n = normalize(cross(normalize(Mmat_coords[1].xyz() - Mmat_coords[0].xyz()), normalize(Mmat_coords[2].xyz() - Mmat_coords[0].xyz())));
+            //float ndotl = dot(n, lightdir);
+
+            //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
+            rasterize(screen_coords,
+                vertex_normals,
+                vertex_uv, image,
+                objfiles,
+                objfiles.fromBlockIdx2TextureIdx(blockidx),
+                TGAColor(255, 255, 255, 255), 
+                zbuffer, 
+                vec2i(WIDHT, HEIGHT), 
+                lightdir);
         }
-        //vec3f n = normalize(cross(normalize(Mmat_coords[1].xyz() - Mmat_coords[0].xyz()), normalize(Mmat_coords[2].xyz() - Mmat_coords[0].xyz())));
-        //float ndotl = dot(n, lightdir);
-
-        //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
-        rasterize(screen_coords, vertex_normals, image, TGAColor(255, 255, 255, 255), zbuffer, vec2i(WIDHT, HEIGHT), lightdir);
-
-        if (faceidx % 100 == 0) std::cout << "Finished render faces number: " << faceidx << std::endl;
+        std::cout << "Finished render block number: " << blockidx << std::endl;
     }
 
     //// 渲染网格测试用例
@@ -92,6 +105,6 @@ int main()
 
     delete[] zbuffer;
     image.flip_vertically();
-	image.write_tga_file("output.tga");
+	image.write_tga_file("Resource/output.tga");
 	return 0;
 }
