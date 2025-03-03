@@ -372,3 +372,8 @@ bool TGAImage::scale(int w, int h) {
 	height = h;
 	return true;
 }
+
+unsigned char TGAImage::getPixel(int x, int y, int c)
+{
+	return data[(y * width + x) * bytespp + c];
+}

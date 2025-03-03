@@ -4,18 +4,28 @@
 #include "tgaimage.h"
 #include "OBJParser.h"
 #include "GraphicDrawing.h"
+#include "PostProcess.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
-#define WIDHT 2560
-#define HEIGHT 2560
+const TGAColor black = TGAColor(0, 0, 0, 255);
+const TGAColor outerlinecolor = TGAColor(161, 103, 74, 255);
+const TGAColor innerlinecolor = TGAColor(18, 18, 56, 255);
+#define WIDHT 4096
+#define HEIGHT 4096
 
 int main()
 {
 	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB, vec4c(253, 245, 191, 255));
+    TGAImage normalbuffer(WIDHT, HEIGHT, TGAImage::RGB, vec4c(0, 0, 0, 255));
     OBJParser objfiles("Resource/mita dream.obj");
     float *zbuffer = new float[WIDHT * HEIGHT];
-    for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = std::numeric_limits<float>::max();
+    unsigned char *stencilbuffer = new unsigned char[WIDHT * HEIGHT];
+    //for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = sqrt(std::numeric_limits<float>::max());
+    // 深度缓冲默认值不能取太大值，否则在做边缘检测卷积的时候会出现溢出或精度问题.
+    for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = 10000;
+    // 初始化模板缓冲
+    for (int i = 0; i < WIDHT * HEIGHT; ++i) stencilbuffer[i] = 0;
 
     // 模型变换矩阵
     Matrix rmat(0., 0., 0.);
@@ -34,8 +44,15 @@ int main()
     // projectionMatrix
     Matrix projectionMat = Matrix::MakeProjectionMatrix(10, 0.1, 45, 1);
 
+
+    bool enablestencil = false;
+    unsigned char stencilbuffervalue = 1;
     // 渲染模型测试用例
     for (int blockidx = 0; blockidx < objfiles.nBlock(); ++blockidx) {
+
+        if (blockidx == 6 || blockidx == 4) enablestencil = true;
+        else enablestencil = false;
+
         for (int faceidx = 0; faceidx < objfiles.nFaces(blockidx); ++faceidx) {
             std::vector<vec3i> fi = objfiles.getFace(blockidx, faceidx);
             std::vector<vec3f> screen_coords(3);
@@ -69,16 +86,25 @@ int main()
             //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
             rasterize(screen_coords,
                 vertex_normals,
-                vertex_uv, image,
+                vertex_uv,
+                image,
+                normalbuffer,
                 objfiles,
                 objfiles.fromBlockIdx2TextureIdx(blockidx),
-                TGAColor(255, 255, 255, 255), 
-                zbuffer, 
+                red, 
+                zbuffer,
+                stencilbuffer,
+                enablestencil,
+                stencilbuffervalue,
                 vec2i(WIDHT, HEIGHT), 
                 lightdir);
         }
         std::cout << "Finished render block number: " << blockidx << std::endl;
     }
+
+    // 外描边后处理（这里用边缘检测实现）
+    PostProcess::sobelEdgeDetection(zbuffer, stencilbuffer, normalbuffer, WIDHT, HEIGHT, image, outerlinecolor, innerlinecolor, true, stencilbuffervalue);
+    std::cout << "Finished outline draw." << std::endl;
 
     //// 渲染网格测试用例
     //for (int faceidx = 0; faceidx < objfiles.nFaces(); ++faceidx) {
@@ -106,5 +132,7 @@ int main()
     delete[] zbuffer;
     image.flip_vertically();
 	image.write_tga_file("Resource/output.tga");
+    normalbuffer.flip_vertically();
+    normalbuffer.write_tga_file("Resource/NormalBuffer.tga");
 	return 0;
 }

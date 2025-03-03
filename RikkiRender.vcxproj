@@ -131,6 +131,7 @@
     <ClCompile Include="GeometricTypes.cpp" />
     <ClCompile Include="GraphicDrawing.cpp" />
     <ClCompile Include="OBJParser.cpp" />
+    <ClCompile Include="PostProcess.cpp" />
     <ClCompile Include="RikkiRender.cpp" />
     <ClCompile Include="tgaimage.cpp" />
   </ItemGroup>
@@ -139,6 +140,7 @@
     <ClInclude Include="GeometricTypes.h" />
     <ClInclude Include="GraphicDrawing.h" />
     <ClInclude Include="OBJParser.h" />
+    <ClInclude Include="PostProcess.h" />
     <ClInclude Include="tgaimage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
