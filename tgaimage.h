@@ -83,6 +83,7 @@ public:
 	bool flip_horizontally();
 	bool flip_vertically();
 	bool scale(int w, int h);
+	unsigned char getPixel(int x, int y, int c);
 	TGAColor get(int x, int y);
 	bool set(int x, int y, TGAColor c);
 	~TGAImage();

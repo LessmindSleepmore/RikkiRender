@@ -49,11 +49,16 @@ void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color)
 */
 void rasterize(std::vector<vec3f> scpos,
     std::vector<vec3f> vertex_normals,
-    std::vector<vec2f> vertex_uv, TGAImage& image,
+    std::vector<vec2f> vertex_uv, 
+    TGAImage& image,
+    TGAImage& normalbuffer,
     OBJParser& objparser,
     int textureIdx,
     TGAColor defualtcolor,
     float* zbuffer,
+    unsigned char* stencilbuffer,
+    bool enablestencilbuffer,
+    unsigned stencilbuffervalue,
     vec2i resolution,
     vec3f lightdir)
 {
@@ -93,8 +98,8 @@ void rasterize(std::vector<vec3f> scpos,
                 // 插值z
                 float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
                 // 插值法线
-                vec3f clampnormal = vertex_normals[0] * (1 - _cv.x - _cv.y) + vertex_normals[1] * _cv.x + vertex_normals[2] * _cv.y;
-                float ndotl = dot(normalize(clampnormal), normalize(lightdir));
+                vec3f clampnormal = normalize(vertex_normals[0] * (1 - _cv.x - _cv.y) + vertex_normals[1] * _cv.x + vertex_normals[2] * _cv.y);
+                float ndotl = dot(clampnormal, normalize(lightdir));
                 // 插值uv
                 vec2f clampUV = vertex_uv[0] * (1 - _cv.x - _cv.y) + vertex_uv[1] * _cv.x + vertex_uv[2] * _cv.y;
                 vec4c color = objparser.samplerTexture2D(textureIdx, clampUV);
@@ -102,6 +107,15 @@ void rasterize(std::vector<vec3f> scpos,
                 if (zbuffer[_x * resolution.y + _y] > clampz && ndotl >= 0) {
                     zbuffer[_x * resolution.y + _y] = clampz;
                     image.set(_x, _y, TGAColor(color.r, color.g, color.b, color.a));
+                    normalbuffer.set(_x, _y, TGAColor(abs(clampnormal.x) * 255, abs(clampnormal.y) * 255, abs(clampnormal.z) * 255, 255));
+
+                    if (enablestencilbuffer) {
+                        stencilbuffer[_x * resolution.y + _y] = stencilbuffervalue;
+                    }
+                    else {
+                        // 模板缓冲设置为初始值
+                        stencilbuffer[_x * resolution.y + _y] = 0;
+                    }
                 }
             }
         }
