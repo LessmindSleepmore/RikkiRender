@@ -15,4 +15,9 @@ public:
         TGAColor innercolor,
         bool enablestencil,
         unsigned char notequalstencilvalue);
+
+    static void Flare(
+        int width,
+        int height, 
+        TGAImage& img);
 };

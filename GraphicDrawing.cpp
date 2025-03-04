@@ -48,6 +48,7 @@ void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color)
 * @param scpos: [float]The range of X and Y is [0, width] and [0, height] respectively.
 */
 void rasterize(std::vector<vec3f> scpos,
+    std::vector<vec3f> wspos,
     std::vector<vec3f> vertex_normals,
     std::vector<vec2f> vertex_uv, 
     TGAImage& image,
@@ -62,8 +63,9 @@ void rasterize(std::vector<vec3f> scpos,
     vec2i resolution,
     vec3f lightdir,
     vec3f cameraPos,
-    Texture& ramptex
-    )
+    Texture& ramptex,
+    int blockidx,
+    vec3f faceCenter)
 {
     // 判断是否丢弃片段
     bool isthrow = true;
@@ -100,6 +102,14 @@ void rasterize(std::vector<vec3f> scpos,
                 }
                 // 插值z
                 float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
+
+                if (blockidx == 6) {
+                    // 如果是面部则利用中心点重新计算法线
+                    for (int i = 0; i < 3; ++i) {
+                        vertex_normals[i] = normalize(wspos[i] - faceCenter);
+                    }
+                }
+                
                 // 插值法线
                 vec3f clampnormal = normalize(vertex_normals[0] * (1 - _cv.x - _cv.y) + vertex_normals[1] * _cv.x + vertex_normals[2] * _cv.y);
                 // 插值世界坐标
@@ -113,13 +123,21 @@ void rasterize(std::vector<vec3f> scpos,
                 // 二维Ramp采样
                 vec4f rampcolor = ramptex.samplerTexure(vec2f(ndotl, ndotv));
 
+                // 边缘光
+                float fresnelvalue =  1. + pow(1. - ndotv, 100) / 2.;
+
                 // 插值uv
                 vec2f clampUV = vertex_uv[0] * (1 - _cv.x - _cv.y) + vertex_uv[1] * _cv.x + vertex_uv[2] * _cv.y;
                 vec4c color = objparser.samplerTexture2D(textureIdx, clampUV);
+                vec4f tempcolor = rampcolor * fresnelvalue;
+                TGAColor rescolor = TGAColor(static_cast<unsigned char>(fmin(static_cast<float>(color.x) * tempcolor.x, 255)),
+                    static_cast<unsigned char>(fmin(static_cast<float>(color.y) * tempcolor.y, 255)),
+                    static_cast<unsigned char>(fmin(static_cast<float>(color.z) * tempcolor.z, 255)),
+                    static_cast<unsigned char>(fmin(static_cast<float>(color.w) * tempcolor.w, 255)));
 
                 if (zbuffer[_x * resolution.y + _y] > clampz) {
                     zbuffer[_x * resolution.y + _y] = clampz;
-                    image.set(_x, _y, TGAColor(color * rampcolor));
+                    image.set(_x, _y, rescolor);
                     normalbuffer.set(_x, _y, TGAColor(abs(clampnormal.x) * 255, abs(clampnormal.y) * 255, abs(clampnormal.z) * 255, 255));
 
                     if (enablestencilbuffer) {

@@ -17,9 +17,9 @@ const TGAColor innerlinecolor = TGAColor(18, 18, 56, 255);
 
 int main()
 {
-	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB, vec4c(253, 245, 191, 255));
+	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB, vec4c(184, 216, 216, 255));
     TGAImage normalbuffer(WIDHT, HEIGHT, TGAImage::RGB, vec4c(0, 0, 0, 255));
-    OBJParser objfiles("Resource/mita dream.obj");
+    OBJParser objfiles("Resource/mitadream_addFaceObj.obj");
     float *zbuffer = new float[WIDHT * HEIGHT];
     unsigned char *stencilbuffer = new unsigned char[WIDHT * HEIGHT];
     //for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = sqrt(std::numeric_limits<float>::max());
@@ -27,25 +27,27 @@ int main()
     for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = 10000;
     // 初始化模板缓冲
     for (int i = 0; i < WIDHT * HEIGHT; ++i) stencilbuffer[i] = 0;
-
     // 模型变换矩阵
     Matrix rmat(0., 0., 0.);
     Matrix tmat(vec3f(0., 0, 0.));
     Matrix modelmat = tmat.MultipleMat(rmat);
 
     // ViewMatrix
-    vec3f cameraPos(0., 7, 5.); // 相机位置
-    vec3f cameraRot(30., 180., 0.); // 旋转
+    vec3f cameraPos(0., 6., 3.); // 相机位置
+    vec3f cameraRot(10., 180., 0.); // 旋转
     Matrix viewmat(cameraPos, cameraRot);
     Matrix camRotMat(cameraRot.x, cameraRot.y, cameraRot.z);
 
     // 设置光源
     //vec3f lightdir(camRotMat.MultipleVec3(vec3f(0., 0., -1.0))); // 设置一个相机发出的光源
-    vec3f lightdir(0.18, 0.25, 1.0);
+    vec3f lightdir(1.0, 0.0, 1.0); // vec3f lightdir(0.8, 0.25, 1.0);
 
     // projectionMatrix
     Matrix projectionMat = Matrix::MakeProjectionMatrix(10, 0.1, 45, 1);
     Texture ramptex("Resource/Ramp2D.png");
+
+    // 获取面部网格中心
+    vec3f facecenter = objfiles.getVert(objfiles.getFace(7, 0)[0].x);
 
     bool enablestencil = false;
     unsigned char stencilbuffervalue = 1;
@@ -58,6 +60,7 @@ int main()
         for (int faceidx = 0; faceidx < objfiles.nFaces(blockidx); ++faceidx) {
             std::vector<vec3i> fi = objfiles.getFace(blockidx, faceidx);
             std::vector<vec3f> screen_coords(3);
+            std::vector<vec3f> world_coords(3);
             std::vector<vec3f> vertex_normals;
             std::vector<vec2f> vertex_uv;
             vec4f local_coords[3];
@@ -67,6 +70,7 @@ int main()
             for (int j = 0; j < 3; j++) {
                 local_coords[j] = vec4f(objfiles.getVert(fi[j].x), 1.);
                 Mmat_coords[j] = modelmat.MultipleVec4(local_coords[j]);
+                world_coords[j] = Mmat_coords[j].xyz() / Mmat_coords[j].w;
                 MVmat_coords[j] = viewmat.MultipleVec4(Mmat_coords[j]);
                 MVPmat_coords[j] = projectionMat.MultipleVec4(MVmat_coords[j]);
 
@@ -87,6 +91,7 @@ int main()
 
             //triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(255 * ndotl, 255 * ndotl, 255 * ndotl, 255));
             rasterize(screen_coords,
+                world_coords,
                 vertex_normals,
                 vertex_uv,
                 image,
@@ -101,13 +106,16 @@ int main()
                 vec2i(WIDHT, HEIGHT), 
                 lightdir,
                 cameraPos,
-                ramptex);
+                ramptex,
+                blockidx,
+                facecenter);
         }
         std::cout << "Finished render block number: " << blockidx << std::endl;
     }
 
     // 外描边后处理（这里用边缘检测实现）
     PostProcess::sobelEdgeDetection(zbuffer, stencilbuffer, normalbuffer, WIDHT, HEIGHT, image, outerlinecolor, innerlinecolor, true, stencilbuffervalue);
+    PostProcess::Flare(WIDHT, HEIGHT, image);
     std::cout << "Finished outline draw." << std::endl;
 
     //// 渲染网格测试用例
