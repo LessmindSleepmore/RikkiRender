@@ -73,3 +73,28 @@ void PostProcess::sobelEdgeDetection(
 
     return;
 }
+
+void PostProcess::Flare(int width, int height, TGAImage& img) {
+    TGAColor backgroundcolor = TGAColor(255, 218, 148, 255);
+
+    for (int y = 0; y < height; ++y) {
+        float y_intensity = static_cast<float>(y) / static_cast<float>(height);
+        y_intensity = pow(y_intensity, 2);
+
+        for (int x = 0; x < width; ++x) {
+            float x_intensity = (width - static_cast<float>(x)) / static_cast<float>(width);
+            x_intensity = pow(x_intensity, 2);
+
+            float intensity = x_intensity * y_intensity;
+
+            TGAColor originalcolor = img.get(x, y);
+            int r = static_cast<int>(originalcolor.r * (1 - intensity) + backgroundcolor.r * intensity);
+            int g = static_cast<int>(originalcolor.g * (1 - intensity) + backgroundcolor.g * intensity);
+            int b = static_cast<int>(originalcolor.b * (1 - intensity) + backgroundcolor.b * intensity);
+            int a = static_cast<int>(originalcolor.a * (1 - intensity) + backgroundcolor.a * intensity);
+
+            TGAColor newColor = TGAColor(r, g, b, a);
+            img.set(x, y, newColor);
+        }
+    }
+}

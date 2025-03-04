@@ -13,6 +13,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color);
 void triangle(vec2i v0, vec2i v1, vec2i v2, TGAImage& image, TGAColor color);
 
 void rasterize(std::vector<vec3f> scpos,
+    std::vector<vec3f> wspos,
     std::vector<vec3f> vertex_normals,
     std::vector<vec2f> vertex_uv,
     TGAImage& image,
@@ -27,5 +28,6 @@ void rasterize(std::vector<vec3f> scpos,
     vec2i resolution,
     vec3f lightdir,
     vec3f cameraPos,
-    Texture& ramptex
-);
+    Texture& ramptex,
+    int blockidx,
+    vec3f faceCenter);
