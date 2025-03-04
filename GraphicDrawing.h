@@ -2,6 +2,7 @@
 
 #include "tgaimage.h"
 #include "CustomAlgorithm.h"
+#include "Texture.h"
 #include "GeometricTypes.h"
 #include "OBJParser.h"
 #include <algorithm>
@@ -24,4 +25,7 @@ void rasterize(std::vector<vec3f> scpos,
     bool enablestencilbuffer,
     unsigned stencilbuffervalue,
     vec2i resolution,
-    vec3f lightdir);
+    vec3f lightdir,
+    vec3f cameraPos,
+    Texture& ramptex
+);

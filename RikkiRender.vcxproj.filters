@@ -57,6 +57,9 @@
     <ClCompile Include="PostProcess.cpp">
       <Filter>源文件\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>源文件\Data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tgaimage.h">
@@ -76,6 +79,9 @@
     </ClInclude>
     <ClInclude Include="PostProcess.h">
       <Filter>头文件\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>头文件\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

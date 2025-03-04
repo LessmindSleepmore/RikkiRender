@@ -41,6 +41,9 @@ struct TGAColor {
 	TGAColor(int v, int bpp) : val(v), bytespp(bpp) {
 	}
 
+	TGAColor(vec4c _color) : r(fmin(_color.x, 255)), g(fmin(_color.y, 255)), b(fmin(_color.z, 255)), a(fmin(_color.w, 255)), bytespp(4) {
+	}
+
 	TGAColor(const TGAColor& c) : val(c.val), bytespp(c.bytespp) {
 	}
 

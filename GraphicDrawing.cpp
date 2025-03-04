@@ -60,7 +60,10 @@ void rasterize(std::vector<vec3f> scpos,
     bool enablestencilbuffer,
     unsigned stencilbuffervalue,
     vec2i resolution,
-    vec3f lightdir)
+    vec3f lightdir,
+    vec3f cameraPos,
+    Texture& ramptex
+    )
 {
     // 判断是否丢弃片段
     bool isthrow = true;
@@ -99,14 +102,24 @@ void rasterize(std::vector<vec3f> scpos,
                 float clampz = (1 - _cv.x - _cv.y) * scpos[0].z + _cv.x * scpos[1].z + _cv.y * scpos[2].z;
                 // 插值法线
                 vec3f clampnormal = normalize(vertex_normals[0] * (1 - _cv.x - _cv.y) + vertex_normals[1] * _cv.x + vertex_normals[2] * _cv.y);
+                // 插值世界坐标
+                vec3f clampWP = normalize(scpos[0] * (1 - _cv.x - _cv.y) + scpos[1] * _cv.x + scpos[2] * _cv.y);
+
+                // 计算光照强度
                 float ndotl = dot(clampnormal, normalize(lightdir));
+                float ndotv = dot(clampnormal, normalize(cameraPos - clampWP));
+                ndotl = fmax(0, ndotl);
+                ndotv = fmax(0, ndotv);
+                // 二维Ramp采样
+                vec4f rampcolor = ramptex.samplerTexure(vec2f(ndotl, ndotv));
+
                 // 插值uv
                 vec2f clampUV = vertex_uv[0] * (1 - _cv.x - _cv.y) + vertex_uv[1] * _cv.x + vertex_uv[2] * _cv.y;
                 vec4c color = objparser.samplerTexture2D(textureIdx, clampUV);
 
-                if (zbuffer[_x * resolution.y + _y] > clampz && ndotl >= 0) {
+                if (zbuffer[_x * resolution.y + _y] > clampz) {
                     zbuffer[_x * resolution.y + _y] = clampz;
-                    image.set(_x, _y, TGAColor(color.r, color.g, color.b, color.a));
+                    image.set(_x, _y, TGAColor(color * rampcolor));
                     normalbuffer.set(_x, _y, TGAColor(abs(clampnormal.x) * 255, abs(clampnormal.y) * 255, abs(clampnormal.z) * 255, 255));
 
                     if (enablestencilbuffer) {
