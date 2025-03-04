@@ -133,6 +133,7 @@
     <ClCompile Include="OBJParser.cpp" />
     <ClCompile Include="PostProcess.cpp" />
     <ClCompile Include="RikkiRender.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="tgaimage.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="GraphicDrawing.h" />
     <ClInclude Include="OBJParser.h" />
     <ClInclude Include="PostProcess.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="tgaimage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

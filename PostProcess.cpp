@@ -27,26 +27,6 @@ void PostProcess::sobelEdgeDetection(
         {1, 2, 1}
     };
 
-    // …Ó∂»Õº±ﬂ‘µºÏ≤‚(Õ‚±ﬂ‘µ)
-    for (int y = 1; y < height - 1; ++y) {
-        for (int x = 1; x < width - 1; ++x) {
-            float gx = 0.0f;
-            float gy = 0.0f;
-
-            for (int j = -1; j <= 1; ++j) {
-                for (int i = -1; i <= 1; ++i) {
-                    int index = (y + j) * width + (x + i);
-                    gx += zbuffer[index] * Gx[j + 1][i + 1];
-                    gy += zbuffer[index] * Gy[j + 1][i + 1];
-                }
-            }
-            float gradientMagnitude = fmin(sqrt(gx * gx + gy * gy) - 2., 1.0);
-            if (gradientMagnitude > 0.001) {
-                img.set(y, x, TGAColor(outercolor.r, outercolor.g, outercolor.b, outercolor.a));
-            }
-        }
-    }
-
     // ∑®œﬂ—’…´ª∫≥Â±ﬂ‘µºÏ≤‚(ƒ⁄±ﬂ‘µ)
     for (int y = 1; y < height - 1; ++y) {
         for (int x = 1; x < width - 1; ++x) {
@@ -67,6 +47,26 @@ void PostProcess::sobelEdgeDetection(
                 if (magnitude > 0.001 && stencilbuffer[x * height + y] != notequalstencilvalue) {
                     img.set(x, y, TGAColor(innercolor.r, innercolor.g, innercolor.b, innercolor.a));
                 }
+            }
+        }
+    }
+
+    // …Ó∂»Õº±ﬂ‘µºÏ≤‚(Õ‚±ﬂ‘µ)
+    for (int y = 1; y < height - 1; ++y) {
+        for (int x = 1; x < width - 1; ++x) {
+            float gx = 0.0f;
+            float gy = 0.0f;
+
+            for (int j = -1; j <= 1; ++j) {
+                for (int i = -1; i <= 1; ++i) {
+                    int index = (y + j) * width + (x + i);
+                    gx += zbuffer[index] * Gx[j + 1][i + 1];
+                    gy += zbuffer[index] * Gy[j + 1][i + 1];
+                }
+            }
+            float gradientMagnitude = fmin(sqrt(gx * gx + gy * gy) - 100., 1.0);
+            if (gradientMagnitude > 0.001) {
+                img.set(y, x, TGAColor(outercolor.r, outercolor.g, outercolor.b, outercolor.a));
             }
         }
     }

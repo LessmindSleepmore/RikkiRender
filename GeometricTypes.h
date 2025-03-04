@@ -71,6 +71,8 @@ struct vec4
 	vec4(vec3<t> vc3, t _w) :x(vc3.x), y(vc3.y), z(vc3.z), w(_w) {}
 	vec4(t _x, t _y, t _z, t _w) :x(_x), y(_y), z(_z), w(_w) {}
 	vec3<t> xyz() { return vec3<t>(x, y, z); }
+	inline vec4<t> operator *(const vec4<float> v) const { return vec4<t>(x * v.x, y * v.y, z * v.z, w * v.w); }
+	inline vec4<t> operator +(const vec4<t> v) const { return vec4<t>(x + v.x, y + v.y, z + v.z, w + v.w); }
 };
 
 typedef vec4<int> vec4i;

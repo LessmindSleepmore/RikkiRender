@@ -5,6 +5,7 @@
 #include "OBJParser.h"
 #include "GraphicDrawing.h"
 #include "PostProcess.h"
+#include "Texture.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
@@ -38,12 +39,13 @@ int main()
     Matrix viewmat(cameraPos, cameraRot);
     Matrix camRotMat(cameraRot.x, cameraRot.y, cameraRot.z);
 
-    //设置一个相机发出的光源
-    vec3f lightdir(camRotMat.MultipleVec3(vec3f(0., 0., -1.0)));
+    // 设置光源
+    //vec3f lightdir(camRotMat.MultipleVec3(vec3f(0., 0., -1.0))); // 设置一个相机发出的光源
+    vec3f lightdir(0.18, 0.25, 1.0);
 
     // projectionMatrix
     Matrix projectionMat = Matrix::MakeProjectionMatrix(10, 0.1, 45, 1);
-
+    Texture ramptex("Resource/Ramp2D.png");
 
     bool enablestencil = false;
     unsigned char stencilbuffervalue = 1;
@@ -97,7 +99,9 @@ int main()
                 enablestencil,
                 stencilbuffervalue,
                 vec2i(WIDHT, HEIGHT), 
-                lightdir);
+                lightdir,
+                cameraPos,
+                ramptex);
         }
         std::cout << "Finished render block number: " << blockidx << std::endl;
     }
