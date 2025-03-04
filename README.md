@@ -1,2 +1,2 @@
 # RikkiRender
-![](https://github.com/LessmindSleepmore/RikkiRender/blob/master/Resource/outputpng.png)
+![](https://github.com/LessmindSleepmore/RikkiRender/blob/master/Resource/output.png)
