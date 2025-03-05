@@ -19,7 +19,7 @@ Texture::~Texture()
 
 vec4f Texture::samplerTexure(vec2f uv)
 {
-	int x = static_cast<int>(uv.x * (width - 1));
+	int x = static_cast<int>((uv.x + 1.) / 2 * (width - 1));
 	int y = static_cast<int>((1. - uv.y) * (height - 1));
 
 	// RGBA

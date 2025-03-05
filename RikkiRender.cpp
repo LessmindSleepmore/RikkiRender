@@ -14,14 +14,14 @@ const TGAColor outerlinecolor = TGAColor(161, 103, 74, 255);
 const TGAColor innerlinecolor = TGAColor(18, 18, 56, 255);
 #define WIDHT 4096
 #define HEIGHT 4096
+#define PI 3.1425926535
 
-int main()
-{
-	TGAImage image(WIDHT, HEIGHT, TGAImage::RGB, vec4c(184, 216, 216, 255));
+void render(float lightxdegree) {
+    TGAImage image(WIDHT, HEIGHT, TGAImage::RGB, vec4c(184, 216, 216, 255));
     TGAImage normalbuffer(WIDHT, HEIGHT, TGAImage::RGB, vec4c(0, 0, 0, 255));
     OBJParser objfiles("Resource/mitadream_addFaceObj.obj");
-    float *zbuffer = new float[WIDHT * HEIGHT];
-    unsigned char *stencilbuffer = new unsigned char[WIDHT * HEIGHT];
+    float* zbuffer = new float[WIDHT * HEIGHT];
+    unsigned char* stencilbuffer = new unsigned char[WIDHT * HEIGHT];
     //for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = sqrt(std::numeric_limits<float>::max());
     // 深度缓冲默认值不能取太大值，否则在做边缘检测卷积的时候会出现溢出或精度问题.
     for (int i = 0; i < WIDHT * HEIGHT; ++i) zbuffer[i] = 10000;
@@ -40,14 +40,15 @@ int main()
 
     // 设置光源
     //vec3f lightdir(camRotMat.MultipleVec3(vec3f(0., 0., -1.0))); // 设置一个相机发出的光源
-    vec3f lightdir(1.0, 0.0, 1.0); // vec3f lightdir(0.8, 0.25, 1.0);
+    vec3f lightdir(cosf(lightxdegree), 0.0, sinf(lightxdegree)); // vec3f lightdir(0.8, 0.25, 1.0);
 
     // projectionMatrix
     Matrix projectionMat = Matrix::MakeProjectionMatrix(10, 0.1, 45, 1);
     Texture ramptex("Resource/Ramp2D.png");
 
-    // 获取面部网格中心
+    // 获取面部网格中心并转换到世界坐标下！
     vec3f facecenter = objfiles.getVert(objfiles.getFace(7, 0)[0].x);
+    facecenter = modelmat.MultipleVec4(vec4f(facecenter, 1.0)).xyz();
 
     bool enablestencil = false;
     unsigned char stencilbuffervalue = 1;
@@ -98,12 +99,12 @@ int main()
                 normalbuffer,
                 objfiles,
                 objfiles.fromBlockIdx2TextureIdx(blockidx),
-                red, 
+                red,
                 zbuffer,
                 stencilbuffer,
                 enablestencil,
                 stencilbuffervalue,
-                vec2i(WIDHT, HEIGHT), 
+                vec2i(WIDHT, HEIGHT),
                 lightdir,
                 cameraPos,
                 ramptex,
@@ -142,9 +143,24 @@ int main()
     //rasterize(t2[0], t2[1], t2[2], image, white);
 
     delete[] zbuffer;
+    delete[] stencilbuffer;
     image.flip_vertically();
-	image.write_tga_file("Resource/output.tga");
+
+    //std::ostringstream oss;
+    //oss << "Resource/output_lightxdegree_" << lightxdegree << ".tga";
+    //std::string filename = oss.str();
+
+    image.write_tga_file("Resource/output.tga");
+    //image.write_tga_file(filename.c_str());
     normalbuffer.flip_vertically();
-    normalbuffer.write_tga_file("Resource/NormalBuffer.tga");
-	return 0;
+    //normalbuffer.write_tga_file("Resource/NormalBuffer.tga");
+    return;
+}
+
+int main()
+{
+    //for (float i = 0; i < 180; i += 10) {
+    //    render(PI * i / 180);
+    //}
+    render(0.349177);
 }
