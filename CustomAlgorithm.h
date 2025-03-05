@@ -28,3 +28,8 @@ template <class t>
 t normalize(t a) {
 	return a.normalize();
 };
+
+
+//vec3f calculateFaceLightDirection(vec3f v1, vec3f v2, vec3f v3, vec3f lightdir) {
+//	lightdir
+//}

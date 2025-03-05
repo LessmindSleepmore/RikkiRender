@@ -1,5 +1,9 @@
 #include "GraphicDrawing.h"
 
+const TGAColor white = TGAColor(255, 255, 255, 255);
+const TGAColor red = TGAColor(255, 0, 0, 255);
+const TGAColor black = TGAColor(0, 0, 0, 255);
+
 void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
     bool isSwap = false;
     if (abs(x1 - x0) < abs(y1 - y0)) {
@@ -77,6 +81,13 @@ void rasterize(std::vector<vec3f> scpos,
     }
     if (isthrow) return;
 
+
+    // 绘制面中心点
+    if (blockidx == 7) {
+        image.set(scpos[0].x, scpos[0].y, red);
+        return;
+    }
+
     // find bounding box
     float vertmax = std::numeric_limits<int>::min();
     float vertmin = std::numeric_limits<int>::max();
@@ -118,7 +129,7 @@ void rasterize(std::vector<vec3f> scpos,
                 // 计算光照强度
                 float ndotl = dot(clampnormal, normalize(lightdir));
                 float ndotv = dot(clampnormal, normalize(cameraPos - clampWP));
-                ndotl = fmax(0, ndotl);
+                //ndotl = fmax(0, ndotl);  // 为实现面部的正确阴影ndotl需要在-1.0到1.0之间
                 ndotv = fmax(0, ndotv);
                 // 二维Ramp采样
                 vec4f rampcolor = ramptex.samplerTexure(vec2f(ndotl, ndotv));
