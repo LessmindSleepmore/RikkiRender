@@ -39,49 +39,55 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RikkiRender.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="tgaimage.cpp">
-      <Filter>源文件\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="OBJParser.cpp">
-      <Filter>源文件\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicDrawing.cpp">
-      <Filter>源文件\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="GeometricTypes.cpp">
-      <Filter>源文件\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcess.cpp">
-      <Filter>源文件\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>源文件\Data</Filter>
-    </ClCompile>
+    <ClInclude Include="Header\Data\OBJParser.h">
+      <Filter>头文件\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Data\Texture.h">
+      <Filter>头文件\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Data\TgaImage.h">
+      <Filter>头文件\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Math\CustomAlgorithm.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Math\GeometricTypes.h">
+      <Filter>头文件\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Render\GraphicDrawing.h">
+      <Filter>头文件\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Render\PostProcess.h">
+      <Filter>头文件\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Render\Render.h">
+      <Filter>头文件\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tgaimage.h">
-      <Filter>头文件\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="OBJParser.h">
-      <Filter>头文件\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="GeometricTypes.h">
-      <Filter>头文件\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicDrawing.h">
-      <Filter>头文件\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="CustomAlgorithm.h">
-      <Filter>头文件\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess.h">
-      <Filter>头文件\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>头文件\Data</Filter>
-    </ClInclude>
+    <ClCompile Include="Source\Data\OBJParser.cpp">
+      <Filter>源文件\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Data\Texture.cpp">
+      <Filter>源文件\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Data\TgaImage.cpp">
+      <Filter>源文件\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Math\GeometricTypes.cpp">
+      <Filter>源文件\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\PostProcess.cpp">
+      <Filter>源文件\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\Render.cpp">
+      <Filter>源文件\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RikkiRender.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\GraphicDrawing.cpp">
+      <Filter>源文件\Render</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

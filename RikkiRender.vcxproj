@@ -128,22 +128,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GeometricTypes.cpp" />
-    <ClCompile Include="GraphicDrawing.cpp" />
-    <ClCompile Include="OBJParser.cpp" />
-    <ClCompile Include="PostProcess.cpp" />
-    <ClCompile Include="RikkiRender.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="tgaimage.cpp" />
+    <ClInclude Include="Header\Data\OBJParser.h" />
+    <ClInclude Include="Header\Data\Texture.h" />
+    <ClInclude Include="Header\Data\TgaImage.h" />
+    <ClInclude Include="Header\Math\CustomAlgorithm.h" />
+    <ClInclude Include="Header\Math\GeometricTypes.h" />
+    <ClInclude Include="Header\Render\GraphicDrawing.h" />
+    <ClInclude Include="Header\Render\PostProcess.h" />
+    <ClInclude Include="Header\Render\Render.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CustomAlgorithm.h" />
-    <ClInclude Include="GeometricTypes.h" />
-    <ClInclude Include="GraphicDrawing.h" />
-    <ClInclude Include="OBJParser.h" />
-    <ClInclude Include="PostProcess.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="tgaimage.h" />
+    <ClCompile Include="Source\Data\OBJParser.cpp" />
+    <ClCompile Include="Source\Data\Texture.cpp" />
+    <ClCompile Include="Source\Data\TgaImage.cpp" />
+    <ClCompile Include="Source\Math\GeometricTypes.cpp" />
+    <ClCompile Include="Source\Render\GraphicDrawing.cpp" />
+    <ClCompile Include="Source\Render\PostProcess.cpp" />
+    <ClCompile Include="Source\Render\Render.cpp" />
+    <ClCompile Include="Source\RikkiRender.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
