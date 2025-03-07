@@ -99,6 +99,7 @@ public:
 
 	vec4f MultipleVec4(vec4f v);
 	vec3f MultipleVec3(vec3f v);
+	vec3f MultipleNormal(vec3f v);
 
 	Matrix MultipleMat(Matrix m);
 

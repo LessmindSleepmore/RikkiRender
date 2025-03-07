@@ -149,6 +149,22 @@ vec3f Matrix::MultipleVec3(vec3f v) {
     return result;
 }
 
+vec3f Matrix::MultipleNormal(vec3f v)
+{
+    float resultX = 0.0f;
+    float resultY = 0.0f;
+    float resultZ = 0.0f;
+
+    // 只取矩阵的前 3 行 3 列进行计算
+    for (int i = 0; i < 3; ++i) {
+        resultX += GetValue(i, 0) * v.x;
+        resultY += GetValue(i, 1) * v.y;
+        resultZ += GetValue(i, 2) * v.z;
+    }
+
+    return vec3f(resultX, resultY, resultZ);
+}
+
 Matrix Matrix::MultipleMat(Matrix m)
 {
     Matrix res(4, 0);

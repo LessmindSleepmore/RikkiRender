@@ -33,6 +33,9 @@ protected:
     vec3f lightdir;
     int blockidx;
 
+    int _x;
+    int _y;
+
     float* zbuffer;
     unsigned char* stencilbuffer;
 
@@ -43,6 +46,7 @@ protected:
 
 public:
     Render(int width, int height);
+    ~Render();
 
     void stencilTestSettting(bool enableST, int stencilvalue);
 
@@ -63,7 +67,7 @@ public:
 protected:
     vec3f calculateBarycentricCoordinates(const std::vector<vec3f>& screen_coords, int _x, int _y);
 
-    void rasterize();
+    virtual void rasterize();
 
     virtual void customDataSet();
 

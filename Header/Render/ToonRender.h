@@ -10,21 +10,25 @@ class ToonRender : public Render {
 
     //Clamp
     vec3f clampnormal;
+    vec3f clampoffset;
     vec3f clampWP;
     vec2f clampUV;
 
     // 其他参数
     vec3f facecenter;
     Texture ramptex;
-
-    // 视角空间下的深度数据
-    float* depthbufferVS;
+    std::vector<vec3f> offset_vertexCS;
 
 public:
+    // 视角空间下的深度数据
+    float* depthbufferVS;
+    float rimlightwidth;
 
     ToonRender(int w, int h) : Render(w, h),
         normalbuffer(w, h, TGAImage::RGB, vec4c(0, 0, 0, 255)),
-        depthbufferVS(nullptr) {};
+        depthbufferVS(nullptr),
+        rimlightwidth(0.5)
+    {};
 
 private:
     void clampInTriangle(vec3f _cv) override;

@@ -5,6 +5,7 @@ void ToonRender::clampInTriangle(vec3f _cv)
     clampnormal = normalize(vertex_normals[0] * (1 - _cv.x - _cv.y) + vertex_normals[1] * _cv.x + vertex_normals[2] * _cv.y);
     clampWP = world_coords[0].xyz() * (1 - _cv.x - _cv.y) + world_coords[1].xyz() * _cv.x + world_coords[2].xyz() * _cv.y;
     clampUV = vertex_uv[0] * (1 - _cv.x - _cv.y) + vertex_uv[1] * _cv.x + vertex_uv[2] * _cv.y;
+    clampoffset = offset_vertexCS[0] * (1 - _cv.x - _cv.y) + offset_vertexCS[1] * _cv.x + offset_vertexCS[2] * _cv.y;
 }
 
 void ToonRender::postProcess()
@@ -32,12 +33,16 @@ TGAColor ToonRender::fragmentShader()
     //vec4f rampcolor(1.0, 1.0, 1., 1.);
 
     // 边缘光
-    float fresnelvalue = 1. + pow(1. - ndotv, 7) / 2.; // ndotv效果不好
+    // float fresnelvalue = 1. + pow(1. - ndotv, 7) / 2.; // ndotv效果不好
+    // 视角空间法线偏移的等宽边缘光
+    float offsetdepthVS = depthbufferVS[static_cast<int>(clampoffset.x) * height + static_cast<int>(clampoffset.y)];
+    float depthVS = depthbufferVS[_x * height + _y];
 
-
+    float diffdepthVS = abs(depthVS - offsetdepthVS);
+    diffdepthVS = fmax(diffdepthVS - 10., 0.0);
 
     vec4c color = objfiles.samplerTexture2D(objfiles.fromBlockIdx2TextureIdx(blockidx), clampUV);
-    vec4f tempcolor = rampcolor * fresnelvalue;
+    vec4f tempcolor = rampcolor *  (1 + fmin(1.0, diffdepthVS));
     TGAColor rescolor = TGAColor(static_cast<unsigned char>(fmin(static_cast<float>(color.x) * tempcolor.x, 255)),
         static_cast<unsigned char>(fmin(static_cast<float>(color.y) * tempcolor.y, 255)),
         static_cast<unsigned char>(fmin(static_cast<float>(color.z) * tempcolor.z, 255)),
@@ -102,11 +107,13 @@ void ToonRender::geometryVertexShader(int blockidx, int faceidx)
     screen_coords.clear();
     vertex_normals.clear();
     vertex_uv.clear();
+    offset_vertexCS.clear();
 
     for (int j = 0; j < 3; j++) {
         // 模型变换后不需要进行齐次除法
         world_coords.push_back(modelmat.MultipleVec4(vec4f(objfiles.getVert(face_info[j].x), 1.)));
-        vec4f cilp_space_coord = projectionMat.MultipleVec4(viewmat.MultipleVec4(world_coords[j]));
+        vec4f VSvertex = viewmat.MultipleVec4(world_coords[j]);
+        vec4f cilp_space_coord = projectionMat.MultipleVec4(VSvertex);
 
         // 齐次除法
         cilp_space_coord.x /= cilp_space_coord.w;
@@ -119,5 +126,14 @@ void ToonRender::geometryVertexShader(int blockidx, int faceidx)
 
         // 添加对应的uv坐标
         vertex_uv.push_back(objfiles.getUV(face_info[j].y));
+
+        // 视角空间下偏移顶点，转换到屏幕坐标下
+        vec3f VSnormal = viewmat.MultipleNormal(vertex_normals[j]);
+        vec4f VSoffsetvertex(VSvertex.xyz() + VSnormal * 0.02 * rimlightwidth, 1.0);
+
+        cilp_space_coord = projectionMat.MultipleVec4(VSoffsetvertex);
+        cilp_space_coord.x /= cilp_space_coord.w;
+        cilp_space_coord.y /= cilp_space_coord.w;
+        offset_vertexCS.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -cilp_space_coord.z));
     }
 }
