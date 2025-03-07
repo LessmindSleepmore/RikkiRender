@@ -18,7 +18,7 @@ void DepthRender::geometryVertexShader(int blockidx, int faceidx)
         cilp_space_coord.x /= cilp_space_coord.w;
         cilp_space_coord.y /= cilp_space_coord.w;
 
-        screen_coords.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -cilp_space_coord.z));
+        screen_coords.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -view_coords[j].z));
     }
 }
 

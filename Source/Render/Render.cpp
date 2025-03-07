@@ -15,6 +15,12 @@ Render::Render(int w, int h) :
     for (int i = 0; i < w * h; ++i) stencilbuffer[i] = 0;
 }
 
+Render::~Render()
+{
+    delete[] zbuffer;
+    delete[] stencilbuffer;
+}
+
 void Render::stencilTestSettting(bool enableST, int stencilvalue)
 {
     enablestencilwrite = enableST;
@@ -66,8 +72,8 @@ void Render::rasterize()
         horimin = screen_coords[i].y < horimin ? screen_coords[i].y : horimin;
     }
 
-    for (int _x = (int)round(vertmin); _x <= vertmax; ++_x) {
-        for (int _y = (int)round(horimin); _y <= horimax; ++_y) {
+    for (_x = (int)round(vertmin); _x <= vertmax; ++_x) {
+        for (_y = (int)round(horimin); _y <= horimax; ++_y) {
             // 计算质心坐标 (1 - u - v, u, v)
             vec3f _cv = calculateBarycentricCoordinates(screen_coords, _x, _y);
             // 判断是否在三角形内部
@@ -143,8 +149,7 @@ void Render::Draw()
 
 void Render::Shut()
 {
-    delete[] zbuffer;
-    delete[] stencilbuffer;
+
 }
 
 bool Render::depthStencilTest(int _x, int _y)

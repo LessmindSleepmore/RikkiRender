@@ -37,7 +37,7 @@ void render(float lightxdegree) {
     vec3f cameraPos(0., 6., 3.); // 相机位置
     vec3f cameraRot(10., 180., 0.); // 旋转
     myrender.setCamera(cameraPos, cameraRot, 10, 0.1, 45, 1);
-    drender.setModelTransform(rmat, tmat);
+    drender.setCamera(cameraPos, cameraRot, 10, 0.1, 45, 1);
 
     // 设置光源
     myrender.setLightDirection(vec3f(cosf(lightxdegree), 0.0, sinf(lightxdegree))); // vec3f lightdir(0.8, 0.25, 1.0);
@@ -45,6 +45,8 @@ void render(float lightxdegree) {
 
     // 获取深度值
     drender.Commit();
+    myrender.depthbufferVS = drender.getZBuffer();
+
     myrender.Commit();
 
     return;
