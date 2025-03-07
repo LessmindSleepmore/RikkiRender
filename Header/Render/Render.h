@@ -6,8 +6,9 @@
 #include "PostProcess.h"
 
 class Render {
+
+protected:
     TGAImage image;
-    TGAImage normalbuffer;
     OBJParser objfiles;
 
     int height, width;
@@ -38,14 +39,7 @@ class Render {
     bool enablestencilwrite = false;
     unsigned char stencilbuffervalue = 1;
 
-    // 描边参数
-    const TGAColor outerlinecolor = TGAColor(161, 103, 74, 255);
-    const TGAColor innerlinecolor = TGAColor(18, 18, 56, 255);
-
-public:
-    // 其他参数
-    vec3f facecenter;
-    Texture ramptex;
+    float clampz;
 
 public:
     Render(int width, int height);
@@ -60,20 +54,32 @@ public:
 
     void setLightDirection(vec3f l);
 
-    void commit();
+    virtual void Commit();
 
-private:
+    virtual void clampInTriangle(vec3f _cv) = 0;
+
+    void clampZ(vec3f _cv);
+
+protected:
     vec3f calculateBarycentricCoordinates(const std::vector<vec3f>& screen_coords, int _x, int _y);
 
     void rasterize();
 
-    TGAColor fragmentShader(vec3f worldpos, vec3f& worldnormal, vec2f uv);
+    virtual void customDataSet();
 
-    void geometryVertexShader(int blockidx, int faceidx);
+    virtual void postProcess();
 
-    void beginPostProcess();
+    virtual void Pipeline();
 
-    void Draw();
+    virtual TGAColor fragmentShader() = 0;
+
+    virtual void geometryVertexShader(int blockidx, int faceidx) = 0;
+
+    virtual void Draw();
 
     void Shut();
+
+    virtual bool depthStencilTest(int _x, int _y);
+
+    virtual void writeTexture(int _x, int _y, TGAColor rescolor);
 };

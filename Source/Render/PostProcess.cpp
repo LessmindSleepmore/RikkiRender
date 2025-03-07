@@ -40,6 +40,9 @@ void PostProcess::sobelEdgeDetection(
                 for (int j = -1; j <= 1; ++j) {
                     for (int i = -1; i <= 1; ++i) {
                         int pixelValue = normalbufffer.getPixel(x + i, y + j, c);
+                        if (pixelValue != 0) {
+                            pixelValue += 1;
+                        }
                         gx += pixelValue * Gx[j + 1][i + 1];
                         gy += pixelValue * Gy[j + 1][i + 1];
                     }
