@@ -63,6 +63,12 @@
     <ClInclude Include="Header\Render\Render.h">
       <Filter>头文件\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Header\Render\DepthRender.h">
+      <Filter>头文件\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Render\ToonRender.h">
+      <Filter>头文件\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Data\OBJParser.cpp">
@@ -87,6 +93,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Source\Render\GraphicDrawing.cpp">
+      <Filter>源文件\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\DepthRender.cpp">
+      <Filter>源文件\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\ToonRender.cpp">
       <Filter>源文件\Render</Filter>
     </ClCompile>
   </ItemGroup>
