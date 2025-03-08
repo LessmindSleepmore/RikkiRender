@@ -1,6 +1,6 @@
 #include "../../Header/Render/DepthRender.h"
 
-DepthRender::DepthRender(int w, int h) : Render(w, h){}
+DepthRender::DepthRender(int w, int h) : RenderPipeline(w, h){}
 
 void DepthRender::geometryVertexShader(int blockidx, int faceidx)
 {

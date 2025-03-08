@@ -1,7 +1,7 @@
 #pragma once
-#include "Render.h"
+#include "RenderPipeline.h"
 
-class DepthRender : public Render {
+class DepthRender : public RenderPipeline {
 
 	std::vector<vec4f> view_coords;
 
