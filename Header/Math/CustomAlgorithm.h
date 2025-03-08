@@ -30,6 +30,8 @@ t normalize(t a) {
 };
 
 
-//vec3f calculateFaceLightDirection(vec3f v1, vec3f v2, vec3f v3, vec3f lightdir) {
-//	lightdir
-//}
+void RGB2HLS(unsigned char r, unsigned char g, unsigned char b, float& h, float& l, float& s);
+
+void HLS2RGB(float h, float l, float s, unsigned char& r, unsigned char& g, unsigned char& b);
+
+void decreaseLS(unsigned char& r, unsigned char& g, unsigned char& b, float l_factor, float s_factor);

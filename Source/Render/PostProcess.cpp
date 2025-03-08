@@ -54,9 +54,9 @@ void PostProcess::sobelEdgeDetection(
                 // 实现颜色混合
                 if (magnitude > 0.001 && stencilbuffer[x * height + y] != notequalstencilvalue) {
                     TGAColor ori_color = img.get(x, y);
-                    img.set(x, y, TGAColor(innercolor.r + ori_color.r / 2,
-                        innercolor.g + ori_color.g / 2,
-                        innercolor.b + ori_color.b / 2,
+                    img.set(x, y, TGAColor((innercolor.r + ori_color.r) / 2,
+                        (innercolor.g + ori_color.g) / 2,
+                        (innercolor.b + ori_color.b) / 2,
                         innercolor.a));
                 }
             }

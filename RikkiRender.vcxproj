@@ -136,10 +136,11 @@
     <ClInclude Include="Header\Render\DepthRender.h" />
     <ClInclude Include="Header\Render\GraphicDrawing.h" />
     <ClInclude Include="Header\Render\PostProcess.h" />
-    <ClInclude Include="Header\Render\Render.h" />
-    <ClInclude Include="Header\Render\ToonRender.h" />
+    <ClInclude Include="Header\Render\RenderPipeline.h" />
+    <ClInclude Include="Header\Render\ToonRenderPipeline.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Header\Render\CustomAlgorithm.cpp" />
     <ClCompile Include="Source\Data\OBJParser.cpp" />
     <ClCompile Include="Source\Data\Texture.cpp" />
     <ClCompile Include="Source\Data\TgaImage.cpp" />
@@ -147,8 +148,8 @@
     <ClCompile Include="Source\Render\DepthRender.cpp" />
     <ClCompile Include="Source\Render\GraphicDrawing.cpp" />
     <ClCompile Include="Source\Render\PostProcess.cpp" />
-    <ClCompile Include="Source\Render\Render.cpp" />
-    <ClCompile Include="Source\Render\ToonRender.cpp" />
+    <ClCompile Include="Source\Render\RenderPipeline.cpp" />
+    <ClCompile Include="Source\Render\ToonRenderPipeline.cpp" />
     <ClCompile Include="Source\RikkiRender.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

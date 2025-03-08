@@ -6,7 +6,7 @@
 #include "../Header/Render/GraphicDrawing.h"
 #include "../Header/Render/PostProcess.h"
 #include "../Header/Data/Texture.h"
-#include "../Header/Render/ToonRender.h"
+#include "../Header/Render/ToonRenderPipeline.h"
 #include "../Header/Render/DepthRender.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
@@ -21,7 +21,7 @@ const TGAColor innerlinecolor = TGAColor(18, 18, 56, 255);
 void render(float lightxdegree) {
 
     OBJParser objfiles("Resource/mitadream_addFaceObj.obj");
-    ToonRender myrender(WIDHT, HEIGHT);
+    ToonRenderPipeline myrender(WIDHT, HEIGHT);
     DepthRender drender(WIDHT, HEIGHT);
 
     myrender.setObjFile(objfiles);
@@ -48,6 +48,7 @@ void render(float lightxdegree) {
     myrender.depthbufferVS = drender.getZBuffer();
 
     myrender.Commit();
+    myrender.drawHairCastShadow(5);
 
     return;
 }
