@@ -1,6 +1,6 @@
 ﻿// RikkiRender.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
-
+#include <chrono>
 #include "../Header/Data/TgaImage.h"
 #include "../Header/Data/OBJParser.h"
 #include "../Header/Render/GraphicDrawing.h"
@@ -22,33 +22,34 @@ void render(float lightxdegree) {
 
     OBJParser objfiles("Resource/mitadream_addFaceObj.obj");
     ToonRenderPipeline myrender(WIDHT, HEIGHT);
-    DepthRender drender(WIDHT, HEIGHT);
 
     myrender.setObjFile(objfiles);
-    drender.setObjFile(objfiles);
 
     // 模型变换矩阵
     Matrix rmat(0., 0., 0.);
     Matrix tmat(vec3f(0., 0, 0.));
     myrender.setModelTransform(rmat, tmat);
-    drender.setModelTransform(rmat, tmat);
 
     // 设置相机
     vec3f cameraPos(0., 6., 3.); // 相机位置
     vec3f cameraRot(10., 180., 0.); // 旋转
     myrender.setCamera(cameraPos, cameraRot, 10, 0.1, 45, 1);
-    drender.setCamera(cameraPos, cameraRot, 10, 0.1, 45, 1);
 
     // 设置光源
     myrender.setLightDirection(vec3f(cosf(lightxdegree), 0.0, sinf(lightxdegree))); // vec3f lightdir(0.8, 0.25, 1.0);
     //vec3f lightdir(camRotMat.MultipleVec3(vec3f(0., 0., -1.0))); // 设置一个相机发出的光源
 
-    // 获取深度值
-    drender.Commit();
-    myrender.depthbufferVS = drender.getZBuffer();
+    // 计时开始
+    auto start = std::chrono::high_resolution_clock::now();
 
     myrender.Commit();
     myrender.drawHairCastShadow(5);
+
+    // 计时结束
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    std::cout << "myrender.Commit()耗时: " << elapsed.count() << " 毫秒" << std::endl;
 
     return;
 }

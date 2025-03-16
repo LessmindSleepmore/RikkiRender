@@ -12,7 +12,7 @@ public:
 
 	void clampInTriangle(vec3f _cv) override;
 
-	TGAColor fragmentShader() override;
+	TGAColor fragmentShader(int x, int y) override;
 
 	bool depthStencilTest(int _x, int _y) override;
 

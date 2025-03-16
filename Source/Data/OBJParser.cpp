@@ -173,6 +173,9 @@ int OBJParser::nBlock()
 
 vec4c OBJParser::samplerTexture2D(int blockidx, vec2f uv)
 {
+	uv.x = fmin(fmax(uv.x, 0.), 1.);
+	uv.y = fmin(fmax(uv.y, 0.), 1.);
+
 	unsigned char* img = textures[blockidx];
 
 	int x = static_cast<int>(uv.x * (textures_params[blockidx][0] - 1));

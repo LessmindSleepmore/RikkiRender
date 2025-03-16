@@ -73,6 +73,7 @@ struct vec4
 	vec3<t> xyz() { return vec3<t>(x, y, z); }
 	inline vec4<t> operator *(const vec4<float> v) const { return vec4<t>(x * v.x, y * v.y, z * v.z, w * v.w); }
 	inline vec4<t> operator *(const float v) const { return vec4<t>(x * v, y * v, z * v, w); }
+	inline vec4<t> operator /(const float v) const { return vec4<t>(x / v, y / v, z / v, w); }
 	inline vec4<t> operator +(const vec4<t> v) const { return vec4<t>(x + v.x, y + v.y, z + v.z, w + v.w); }
 };
 

@@ -60,6 +60,20 @@ struct TGAColor {
 		}
 		return *this;
 	}
+
+	TGAColor operator /(const float &f) {
+		return TGAColor(static_cast<unsigned char>(static_cast<float>(r) / f),
+			static_cast<unsigned char>(static_cast<float>(g) / f),
+			static_cast<unsigned char>(static_cast<float>(b) / f),
+			static_cast<unsigned char>(static_cast<float>(a) / f));
+	}
+
+	TGAColor operator +(const TGAColor& tga) {
+		return TGAColor(r + tga.r,
+			g + tga.g,
+			b + tga.b,
+			a + tga.a);
+	}
 };
 
 

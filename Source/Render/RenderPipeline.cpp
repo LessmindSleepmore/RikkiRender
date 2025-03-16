@@ -1,8 +1,9 @@
 #include "../../Header/Render/RenderPipeline.h"
 
-RenderPipeline::RenderPipeline(int w, int h) : 
+RenderPipeline::RenderPipeline(int w, int h) :
     image(w, h, TGAImage::RGB, vec4c(184, 216, 216, 255)),
     zbuffer(new float[w * h]),
+    zbuffersize(w * h),
     stencilbuffer(new unsigned char[w * h]),
     height(h),
     width(w),
@@ -42,7 +43,9 @@ void RenderPipeline::clampZ(vec3f _cv)
     clampz = (1 - _cv.x - _cv.y) * screen_coords[0].z + _cv.x * screen_coords[1].z + _cv.y * screen_coords[2].z;
 }
 
-vec3f RenderPipeline::calculateBarycentricCoordinates(const std::vector<vec3f>& screen_coords, int _x, int _y) {
+
+// 计算重心坐标
+vec3f RenderPipeline::calculateBarycentricCoordinates(const std::vector<vec3f>& screen_coords, float _x, float _y) {
     vec3f _cv = cross(vec3f((screen_coords[1] - screen_coords[0]).x, (screen_coords[2] - screen_coords[0]).x, (screen_coords[0] - vec3f(_x, _y, 0)).x),
         vec3f((screen_coords[1] - screen_coords[0]).y, (screen_coords[2] - screen_coords[0]).y, (screen_coords[0] - vec3f(_x, _y, 0)).y));
     return _cv / _cv.z;
@@ -89,7 +92,7 @@ void RenderPipeline::rasterize()
                 clampInTriangle(_cv);
 
                 // 片元着色器
-                TGAColor rescolor = fragmentShader();
+                TGAColor rescolor = fragmentShader(_x, _y);
 
                 // OM
                 if (depthStencilTest(_x, _y)) {

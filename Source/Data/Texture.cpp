@@ -23,6 +23,8 @@ Texture::~Texture()
 
 vec4f Texture::samplerTexure(vec2f uv)
 {
+	uv.x = fmin(fmax(uv.x, 0.), 1.);
+	uv.y = fmin(fmax(uv.y, 0.), 1.);
 	int x = static_cast<int>((uv.x + 1.) / 2 * (width - 1));
 	int y = static_cast<int>((1. - uv.y) * (height - 1));
 

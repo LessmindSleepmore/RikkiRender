@@ -27,7 +27,7 @@ void DepthRender::clampInTriangle(vec3f _cv)
 
 }
 
-TGAColor DepthRender::fragmentShader()
+TGAColor DepthRender::fragmentShader(int x, int y)
 {
     return TGAColor();
 }

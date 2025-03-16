@@ -37,6 +37,7 @@ protected:
     int _y;
 
     float* zbuffer;
+    long long zbuffersize;
     unsigned char* stencilbuffer;
 
     bool enablestencilwrite = false;
@@ -50,11 +51,11 @@ public:
 
     void stencilTestSettting(bool enableST, int stencilvalue);
 
-    void setObjFile(OBJParser &f);
+    virtual void setObjFile(OBJParser &f);
 
-    void setModelTransform(Matrix rotation, Matrix location);
+    virtual void setModelTransform(Matrix rotation, Matrix location);
 
-    void setCamera(vec3f cameraPos, vec3f cameraRot, int f, int n, float fov, float aspect);
+    virtual void setCamera(vec3f cameraPos, vec3f cameraRot, int f, int n, float fov, float aspect);
 
     void setLightDirection(vec3f l);
 
@@ -65,7 +66,7 @@ public:
     void clampZ(vec3f _cv);
 
 protected:
-    vec3f calculateBarycentricCoordinates(const std::vector<vec3f>& screen_coords, int _x, int _y);
+    virtual vec3f calculateBarycentricCoordinates(const std::vector<vec3f>& screen_coords, float _x, float _y);
 
     virtual void rasterize();
 
@@ -75,7 +76,7 @@ protected:
 
     virtual void Pipeline();
 
-    virtual TGAColor fragmentShader() = 0;
+    virtual TGAColor fragmentShader(int x, int y) = 0;
 
     virtual void geometryVertexShader(int blockidx, int faceidx) = 0;
 

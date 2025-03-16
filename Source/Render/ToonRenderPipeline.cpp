@@ -16,7 +16,7 @@ void ToonRenderPipeline::postProcess()
     std::cout << "Finished PostProcess." << std::endl;
 }
 
-TGAColor ToonRenderPipeline::fragmentShader()
+TGAColor ToonRenderPipeline::fragmentShader(int x, int y)
 {
     if (blockidx == 6) {
         // 如果是面部则利用中心点重新计算法线
@@ -35,8 +35,20 @@ TGAColor ToonRenderPipeline::fragmentShader()
     // 边缘光
     // float fresnelvalue = 1. + pow(1. - ndotv, 7) / 2.; // ndotv效果不好
     // 视角空间法线偏移的等宽边缘光
-    float offsetdepthVS = depthbufferVS[static_cast<int>(clampoffset.x) * height + static_cast<int>(clampoffset.y)];
-    float depthVS = depthbufferVS[_x * height + _y];
+
+    float offsetdepthVS;
+    float depthVS;
+    switch (aa)
+    {
+    case MSAA:
+        offsetdepthVS = 0;
+        depthVS = 0;
+        break;
+    default:
+        offsetdepthVS = depthbufferVS[static_cast<int>(clampoffset.x) * height + static_cast<int>(clampoffset.y)];
+        depthVS = depthbufferVS[x * height + y];
+        break;
+    }
 
     float diffdepthVS = abs(depthVS - offsetdepthVS);
     diffdepthVS = fmax(diffdepthVS - 10., 0.0);
@@ -44,6 +56,7 @@ TGAColor ToonRenderPipeline::fragmentShader()
         diffdepthVS = fmax(diffdepthVS - 10., 0.0);
     }
     vec4c color = objfiles.samplerTexture2D(objfiles.fromBlockIdx2TextureIdx(blockidx), clampUV);
+
     vec4f tempcolor = rampcolor * (1 + fmin(1.0, diffdepthVS));
     TGAColor rescolor = TGAColor(static_cast<unsigned char>(fmin(static_cast<float>(color.x) * tempcolor.x, 255)),
         static_cast<unsigned char>(fmin(static_cast<float>(color.y) * tempcolor.y, 255)),
@@ -69,14 +82,62 @@ void ToonRenderPipeline::writeTexture(int _x, int _y, TGAColor rescolor)
 
 void ToonRenderPipeline::Draw()
 {
-    image.flip_vertically();
-    image.write_tga_file("Resource/output.tga");
-    normalbuffer.flip_vertically();
-    normalbuffer.write_tga_file("Resource/NormalBuffer.tga");
+    if (aa == AntiAliasing::SSAA) {
+        DownsampleSSAA();
+        ssaa_downsampler_img.flip_vertically();
+        ssaa_downsampler_img.write_tga_file("Resource/SSAA.tga");
+    }
+    else if (aa == AntiAliasing::MSAA) {
+        int originalWidth = width / msaa_param;
+        int originalHeight = height / msaa_param;
+
+        for (int y = 0; y < originalHeight; ++y) {
+            for (int x = 0; x < originalWidth; ++x) {
+                int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+
+                for (int iSampleX = 0; iSampleX < msaa_param; ++iSampleX) {
+                    for (int iSampleY = 0; iSampleY < msaa_param; ++iSampleY) {
+                        int sampleIndexX = x * msaa_param + iSampleX;
+                        int sampleIndexY = y * msaa_param + iSampleY;
+                        TGAColor c = image.get(sampleIndexX, sampleIndexY);
+                        sumR += c.r;
+                        //if (c.b != 216) {
+                        //    int cpp = 1;
+                        //}
+                        sumG += c.g;
+                        sumB += c.b;
+                        sumA += c.a;
+                    }
+                }
+
+                int total = msaa_param * msaa_param;
+                unsigned char avgR = static_cast<unsigned char>(sumR / total);
+                unsigned char avgG = static_cast<unsigned char>(sumG / total);
+                unsigned char avgB = static_cast<unsigned char>(sumB / total);
+                unsigned char avgA = static_cast<unsigned char>(sumA / total);
+                TGAColor avgColor(avgR, avgG, avgB, avgA);
+                colorMSAABuffer.set(x, y, avgColor);
+            }
+        }
+        colorMSAABuffer.flip_vertically();
+        colorMSAABuffer.write_tga_file("Resource/MSAA.tga");
+        image.flip_vertically();
+        image.write_tga_file("Resource/output.tga");
+    }
+    else {
+        image.flip_vertically();
+        image.write_tga_file("Resource/output.tga");
+        normalbuffer.flip_vertically();
+        normalbuffer.write_tga_file("Resource/NormalBuffer.tga");
+    }
 }
 
 void ToonRenderPipeline::customDataSet()
 {
+    // 获取深度值
+    drender.Commit();
+    depthbufferVS = drender.getZBuffer();
+
     // 设置shader使用的变量
     facecenter = objfiles.getVert(objfiles.getFace(7, 0)[0].x);
     facecenter = modelmat.MultipleVec4(vec4f(facecenter, 1.0)).xyz();
@@ -97,6 +158,160 @@ void ToonRenderPipeline::Pipeline()
             rasterize();
         }
         std::cout << "Finished render block number: " << blockidx << std::endl;
+    }
+}
+
+void ToonRenderPipeline::rasterize()
+{
+    switch (aa)
+    {
+    case NoAA:
+        NoAARasterize();
+        break;
+    case SSAA:
+        NoAARasterize(); // 这里计算的是扩大分辨率的颜色缓冲
+        break;
+    case MSAA:
+        MSAARasterize();
+        break;
+    default:
+        break;
+    }
+}
+
+void ToonRenderPipeline::setObjFile(OBJParser& f)
+{
+    objfiles = f;
+    drender.setObjFile(objfiles);
+}
+
+void ToonRenderPipeline::setModelTransform(Matrix rotation, Matrix location)
+{
+    modelmat = location.MultipleMat(rotation);
+    drender.setModelTransform(rotation, location);
+}
+
+void ToonRenderPipeline::setCamera(vec3f cameraPos, vec3f cameraRot, int f, int n, float fov, float aspect) 
+{
+    RenderPipeline::setCamera(cameraPos, cameraRot, f, n, fov, aspect);
+    drender.setCamera(cameraPos, cameraRot, 10, 0.1, 45, 1);
+}
+
+void ToonRenderPipeline::NoAARasterize()
+{
+    // 丢弃片段屏幕外的面片
+    bool isthrow = true;
+    for (int i = 0; i < 3; ++i) {
+        if (screen_coords[i].x < width && screen_coords[i].y < height) {
+            isthrow = false;
+            break;
+        }
+    }
+    if (isthrow) return;
+
+    // bounding box
+    float vertmax = std::numeric_limits<int>::min();
+    float vertmin = std::numeric_limits<int>::max();
+    float horimax = std::numeric_limits<int>::min();
+    float horimin = std::numeric_limits<int>::max();
+    for (int i = 0; i < 3; ++i) {
+        vertmax = screen_coords[i].x > vertmax ? screen_coords[i].x : vertmax;
+        vertmin = screen_coords[i].x < vertmin ? screen_coords[i].x : vertmin;
+        horimax = screen_coords[i].y > horimax ? screen_coords[i].y : horimax;
+        horimin = screen_coords[i].y < horimin ? screen_coords[i].y : horimin;
+    }
+
+    for (_x = (int)round(vertmin); _x <= vertmax; ++_x) {
+        for (_y = (int)round(horimin); _y <= horimax; ++_y) {
+            // 计算质心坐标 (1 - u - v, u, v)
+            vec3f _cv = calculateBarycentricCoordinates(screen_coords, _x, _y);
+            // 判断是否在三角形内部
+            if (_cv.x >= 0 && _cv.y >= 0 && _cv.x + _cv.y <= 1) {
+                // 丢弃画面外的像素点
+                if (_x >= width || _y >= height || _x < 0 || _y < 0) {
+                    continue;
+                }
+
+                // 根据质心坐标插值
+                clampZ(_cv);
+                // 自定义插值
+                clampInTriangle(_cv);
+
+                // 片元着色器
+                TGAColor rescolor = fragmentShader(_x, _y);
+
+                // OM
+                if (depthStencilTest(_x, _y)) {
+                    writeTexture(_x, _y, rescolor);
+                }
+            }
+        }
+    }
+}
+
+// 在 ToonRenderPipeline::MSAARasterize() 中补全代码
+void ToonRenderPipeline::MSAARasterize()
+{
+    // 检查是否需要丢弃图元
+    bool isthrow = true;
+    for (int i = 0; i < 3; ++i) {
+        if (screen_coords[i].x < width / msaa_param && screen_coords[i].y < height / msaa_param
+            && screen_coords[i].x > 0 && screen_coords[i].y > 0) {
+            isthrow = false;
+            break;
+        }
+    }
+    if (isthrow) return;
+
+    // 计算包围盒
+    float vertmax = std::numeric_limits<int>::min();
+    float vertmin = std::numeric_limits<int>::max();
+    float horimax = std::numeric_limits<int>::min();
+    float horimin = std::numeric_limits<int>::max();
+    for (int i = 0; i < 3; ++i) {
+        vertmax = screen_coords[i].x > vertmax ? screen_coords[i].x : vertmax;
+        vertmin = screen_coords[i].x < vertmin ? screen_coords[i].x : vertmin;
+        horimax = screen_coords[i].y > horimax ? screen_coords[i].y : horimax;
+        horimin = screen_coords[i].y < horimin ? screen_coords[i].y : horimin;
+    }
+
+    for (int _x = (int)round(vertmin); _x <= vertmax; ++_x) {
+        for (int _y = (int)round(horimin); _y <= horimax; ++_y) {
+            // 计算重心坐标
+            vec3f _cv = calculateBarycentricCoordinates(screen_coords, _x, _y);
+
+            // 插值计算深度
+            clampZ(_cv);
+            // 自定义插值
+            clampInTriangle(_cv);
+            // 计算片元颜色
+            TGAColor rescolor = fragmentShader(_x + 0.5, _y + 0.5);
+
+            for (int iSampleX = 0; iSampleX < msaa_param; ++iSampleX) {
+                for (int iSampleY = 0; iSampleY < msaa_param; ++iSampleY) {
+                    // 计算当前采样点的屏幕坐标
+                    float sampleX = _x + static_cast<float>(iSampleX) / msaa_param;
+                    float sampleY = _y + static_cast<float>(iSampleY) / msaa_param;
+
+                    // 计算重心坐标
+                    vec3f _cv_t = calculateBarycentricCoordinates(screen_coords, sampleX, sampleY);
+                    float _z_t = (1 - _cv_t.x - _cv_t.y) * screen_coords[0].z + _cv_t.x * screen_coords[1].z + _cv_t.y * screen_coords[2].z;
+
+                    // 检查是否在三角形内部
+                    if (_cv_t.x >= 0 && _cv_t.y >= 0 && _cv_t.x + _cv_t.y <= 1) {
+                        int sampleIndexX = _x * msaa_param + iSampleX;
+                        int sampleIndexY = _y * msaa_param + iSampleY;
+                        int sampleBufferIndex = (_x * height / msaa_param + _y) * (msaa_param * msaa_param) + iSampleX * msaa_param + iSampleY;
+
+                        // 深度和模板测试
+                        if (zbuffer[sampleBufferIndex] > _z_t) {
+                            zbuffer[sampleBufferIndex] = _z_t;
+                            image.set(sampleIndexX, sampleIndexY, rescolor);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -121,9 +336,17 @@ void ToonRenderPipeline::geometryVertexShader(int blockidx, int faceidx)
         cilp_space_coord.x /= cilp_space_coord.w;
         cilp_space_coord.y /= cilp_space_coord.w;
 
-        screen_coords.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -cilp_space_coord.z));
+        switch (aa)
+        {
+        case AntiAliasing::MSAA:
+            screen_coords.push_back(vec3f((cilp_space_coord.x + 1.) * (width / msaa_param - 1) / 2., (cilp_space_coord.y + 1.) * (height / msaa_param - 1) / 2., -cilp_space_coord.z));
+            break;
+        default:
+            screen_coords.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -cilp_space_coord.z));
+            break;
+        }
 
-        // 添加对应的顶点法线(这里没变换到世界坐标，因为没移动旋转模型所以没问题)
+        // 添加对应的顶点法线
         vertex_normals.push_back(objfiles.getNormals(face_info[j].z));
 
         // 添加对应的uv坐标
@@ -136,7 +359,15 @@ void ToonRenderPipeline::geometryVertexShader(int blockidx, int faceidx)
         cilp_space_coord = projectionMat.MultipleVec4(VSoffsetvertex);
         cilp_space_coord.x /= cilp_space_coord.w;
         cilp_space_coord.y /= cilp_space_coord.w;
-        offset_vertexCS.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -cilp_space_coord.z));
+        switch (aa)
+        {
+        case AntiAliasing::MSAA:
+            offset_vertexCS.push_back(vec3f((cilp_space_coord.x + 1.) * (width / msaa_param  - 1) / 2., (cilp_space_coord.y + 1.) * (height / msaa_param - 1) / 2., -cilp_space_coord.z));
+            break;
+        default:
+            offset_vertexCS.push_back(vec3f((cilp_space_coord.x + 1.) * (width - 1) / 2., (cilp_space_coord.y + 1.) * (height - 1) / 2., -cilp_space_coord.z));
+            break;
+        }
     }
 }
 
@@ -219,4 +450,39 @@ void ToonRenderPipeline::drawHairCastShadow(int bidx)
     }
     std::cout << "Finished render block number alone: " << bidx << std::endl;
     image.write_tga_file("Resource/output.tga");
+}
+
+void ToonRenderPipeline::DownsampleSSAA() {
+    // 计算原始图像的尺寸
+    int ssaaWidth = image.get_width();
+    int ssaaHeight = image.get_height();
+    int origWidth = ssaaWidth / ssaa_param;
+    int origHeight = ssaaHeight / ssaa_param;
+    int bytespp = image.get_bytespp();
+
+    // 遍历原始图像的每个像素
+    for (int y = 0; y < origHeight; y++) {
+        for (int x = 0; x < origWidth; x++) {
+            // 使用整型累加器来避免溢出
+            int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
+            // 对应 SSAA 图像中的 n×n 块
+            for (int j = 0; j < ssaa_param; j++) {
+                for (int i = 0; i < ssaa_param; i++) {
+                    TGAColor c = image.get(x * ssaa_param + i, y * ssaa_param + j);
+                    sumR += c.r;
+                    sumG += c.g;
+                    sumB += c.b;
+                    sumA += c.a;
+                }
+            }
+            int total = ssaa_param * ssaa_param;
+            unsigned char avgR = static_cast<unsigned char>(sumR / total);
+            unsigned char avgG = static_cast<unsigned char>(sumG / total);
+            unsigned char avgB = static_cast<unsigned char>(sumB / total);
+            unsigned char avgA = static_cast<unsigned char>(sumA / total);
+            TGAColor avgColor(avgR, avgG, avgB, avgA);
+            ssaa_downsampler_img.set(x, y, avgColor);
+        }
+    }
+    return;
 }
