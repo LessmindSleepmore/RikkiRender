@@ -456,15 +456,15 @@ void ToonRenderPipeline::drawHairCastShadow(int bidx)
 
 void ToonRenderPipeline::DownsampleSSAA() {
     // 计算原始图像的尺寸
-    int ssaaWidth = image.get_width();
-    int ssaaHeight = image.get_height();
-    int origWidth = ssaaWidth / ssaa_param;
-    int origHeight = ssaaHeight / ssaa_param;
+    int ssaa_width = image.get_width();
+    int ssaa_height = image.get_height();
+    int orig_width = ssaa_width / ssaa_param;
+    int orig_height = ssaa_height / ssaa_param;
     int bytespp = image.get_bytespp();
 
     // 遍历原始图像的每个像素
-    for (int y = 0; y < origHeight; y++) {
-        for (int x = 0; x < origWidth; x++) {
+    for (int y = 0; y < orig_height; y++) {
+        for (int x = 0; x < orig_width; x++) {
             // 使用整型来避免溢出
             int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
             // 对应 SSAA 图像中的 n×n 块
