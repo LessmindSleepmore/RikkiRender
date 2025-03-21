@@ -88,22 +88,19 @@ void ToonRenderPipeline::Draw()
         ssaa_downsampler_img.write_tga_file("Resource/SSAA.tga");
     }
     else if (aa == AntiAliasing::MSAA) {
-        int originalWidth = width / msaa_param;
-        int originalHeight = height / msaa_param;
+        int originalwidth = width / msaa_param;
+        int originalheight = height / msaa_param;
 
-        for (int y = 0; y < originalHeight; ++y) {
-            for (int x = 0; x < originalWidth; ++x) {
+        for (int y = 0; y < originalheight; ++y) {
+            for (int x = 0; x < originalwidth; ++x) {
                 int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
 
-                for (int iSampleX = 0; iSampleX < msaa_param; ++iSampleX) {
-                    for (int iSampleY = 0; iSampleY < msaa_param; ++iSampleY) {
-                        int sampleIndexX = x * msaa_param + iSampleX;
-                        int sampleIndexY = y * msaa_param + iSampleY;
-                        TGAColor c = image.get(sampleIndexX, sampleIndexY);
+                for (int isampleX = 0; isampleX < msaa_param; ++isampleX) {
+                    for (int isampleY = 0; isampleY < msaa_param; ++isampleY) {
+                        int sampleindexX = x * msaa_param + isampleX;
+                        int sampleindexY = y * msaa_param + isampleY;
+                        TGAColor c = image.get(sampleindexX, sampleindexY);
                         sumR += c.r;
-                        //if (c.b != 216) {
-                        //    int cpp = 1;
-                        //}
                         sumG += c.g;
                         sumB += c.b;
                         sumA += c.a;
@@ -249,7 +246,6 @@ void ToonRenderPipeline::NoAARasterize()
     }
 }
 
-// 在 ToonRenderPipeline::MSAARasterize() 中补全代码
 void ToonRenderPipeline::MSAARasterize()
 {
     // 检查是否需要丢弃图元
@@ -275,38 +271,44 @@ void ToonRenderPipeline::MSAARasterize()
         horimin = screen_coords[i].y < horimin ? screen_coords[i].y : horimin;
     }
 
-    for (int _x = (int)round(vertmin); _x <= vertmax; ++_x) {
-        for (int _y = (int)round(horimin); _y <= horimax; ++_y) {
+    for (int _x = (int)round(vertmin) + 0.5; _x <= vertmax; ++_x) {
+        for (int _y = (int)round(horimin) + 0.5; _y <= horimax; ++_y) {
             // 计算重心坐标
             vec3f _cv = calculateBarycentricCoordinates(screen_coords, _x, _y);
+            // 判断是否在三角形内部
+            if (_cv.x >= 0 && _cv.y >= 0 && _cv.x + _cv.y <= 1) {
+                // 丢弃画面外的像素点
+                if (_x >= width || _y >= height || _x < 0 || _y < 0) {
+                    continue;
+                }
+                // 插值计算深度
+                clampZ(_cv);
+                // 自定义插值
+                clampInTriangle(_cv);
+                // 计算片元颜色
+                TGAColor rescolor = fragmentShader(_x + 0.5, _y + 0.5);
 
-            // 插值计算深度
-            clampZ(_cv);
-            // 自定义插值
-            clampInTriangle(_cv);
-            // 计算片元颜色
-            TGAColor rescolor = fragmentShader(_x + 0.5, _y + 0.5);
+                for (int isampleX = 0; isampleX < msaa_param; ++isampleX) {
+                    for (int isampleY = 0; isampleY < msaa_param; ++isampleY) {
+                        // 计算当前采样点的屏幕坐标
+                        float sampleX = _x + static_cast<float>(isampleX) / msaa_param;
+                        float sampleY = _y + static_cast<float>(isampleY) / msaa_param;
 
-            for (int iSampleX = 0; iSampleX < msaa_param; ++iSampleX) {
-                for (int iSampleY = 0; iSampleY < msaa_param; ++iSampleY) {
-                    // 计算当前采样点的屏幕坐标
-                    float sampleX = _x + static_cast<float>(iSampleX) / msaa_param;
-                    float sampleY = _y + static_cast<float>(iSampleY) / msaa_param;
+                        // 计算重心坐标
+                        vec3f _cv_t = calculateBarycentricCoordinates(screen_coords, sampleX, sampleY);
+                        float _z_t = (1 - _cv_t.x - _cv_t.y) * screen_coords[0].z + _cv_t.x * screen_coords[1].z + _cv_t.y * screen_coords[2].z;
 
-                    // 计算重心坐标
-                    vec3f _cv_t = calculateBarycentricCoordinates(screen_coords, sampleX, sampleY);
-                    float _z_t = (1 - _cv_t.x - _cv_t.y) * screen_coords[0].z + _cv_t.x * screen_coords[1].z + _cv_t.y * screen_coords[2].z;
+                        // 检查是否在三角形内部
+                        if (_cv_t.x >= 0 && _cv_t.y >= 0 && _cv_t.x + _cv_t.y <= 1) {
+                            int sampleindexX = _x * msaa_param + isampleX;
+                            int sampleindexY = _y * msaa_param + isampleY;
+                            int sample_buffer_index = (_x * height / msaa_param + _y) * (msaa_param * msaa_param) + isampleX * msaa_param + isampleY;
 
-                    // 检查是否在三角形内部
-                    if (_cv_t.x >= 0 && _cv_t.y >= 0 && _cv_t.x + _cv_t.y <= 1) {
-                        int sampleIndexX = _x * msaa_param + iSampleX;
-                        int sampleIndexY = _y * msaa_param + iSampleY;
-                        int sampleBufferIndex = (_x * height / msaa_param + _y) * (msaa_param * msaa_param) + iSampleX * msaa_param + iSampleY;
-
-                        // 深度和模板测试
-                        if (zbuffer[sampleBufferIndex] > _z_t) {
-                            zbuffer[sampleBufferIndex] = _z_t;
-                            image.set(sampleIndexX, sampleIndexY, rescolor);
+                            // 深度和模板测试
+                            if (zbuffer[sample_buffer_index] > _z_t) {
+                                zbuffer[sample_buffer_index] = _z_t;
+                                image.set(sampleindexX, sampleindexY, rescolor);
+                            }
                         }
                     }
                 }
@@ -463,7 +465,7 @@ void ToonRenderPipeline::DownsampleSSAA() {
     // 遍历原始图像的每个像素
     for (int y = 0; y < origHeight; y++) {
         for (int x = 0; x < origWidth; x++) {
-            // 使用整型累加器来避免溢出
+            // 使用整型来避免溢出
             int sumR = 0, sumG = 0, sumB = 0, sumA = 0;
             // 对应 SSAA 图像中的 n×n 块
             for (int j = 0; j < ssaa_param; j++) {

@@ -14,14 +14,14 @@ const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor black = TGAColor(0, 0, 0, 255);
 const TGAColor outerlinecolor = TGAColor(161, 103, 74, 255);
 const TGAColor innerlinecolor = TGAColor(18, 18, 56, 255);
-#define WIDHT 4096
-#define HEIGHT 4096
+#define WIDHT 512
+#define HEIGHT 512
 #define PI 3.1425926535
 
 void render(float lightxdegree) {
 
     OBJParser objfiles("Resource/mitadream_addFaceObj.obj");
-    ToonRenderPipeline myrender(WIDHT, HEIGHT);
+    ToonRenderPipeline myrender(WIDHT, HEIGHT, AntiAliasing::MSAA, MSAAx2);
 
     myrender.setObjFile(objfiles);
 

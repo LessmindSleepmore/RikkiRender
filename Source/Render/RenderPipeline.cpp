@@ -1,7 +1,7 @@
 #include "../../Header/Render/RenderPipeline.h"
 
 RenderPipeline::RenderPipeline(int w, int h) :
-    image(w, h, TGAImage::RGB, vec4c(184, 216, 216, 255)),
+    image(w, h, TGAImage::RGB, vec4c(248, 219, 175, 255)),
     zbuffer(new float[w * h]),
     zbuffersize(w * h),
     stencilbuffer(new unsigned char[w * h]),
@@ -139,7 +139,7 @@ void RenderPipeline::Commit()
 {
     customDataSet();
     Pipeline();
-    postProcess();
+    // postProcess();
     Draw();
     Shut();
 }
